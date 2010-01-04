@@ -8,6 +8,6 @@ setup(name='Backharddi NG',
         author_email='pedro.pena@open-phoenix.com',
         license='GPL',
         setup_requires=['nose>=0.10'],
-        test_suite = "nose.collector",
+        test_suite="nose.collector",
         packages=find_packages(),
     )

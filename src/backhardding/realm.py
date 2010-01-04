@@ -9,13 +9,7 @@ class BackharddingRealm:
     def requestAvatar(self, avatarId, mind, *interfaces):
         for iface in interfaces:
             if iface is resource.IResource:
-                if avatarId is checkers.ANONYMOUS:
-                    resc = File("/tmp")
-                    resc.realm = self
-                    return (resource.IResource, resc, lambda: None)
-                else:
-                    resc = File("/tmp")
-                    resc.realm = self
-                    return (resource.IResource, resc, lambda: None)
-
+                resc = File("/tmp")
+                resc.realm = self
+                return (resource.IResource, resc, lambda: None)
         raise NotImplementedError("Can't support that interface.")

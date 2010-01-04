@@ -1,6 +1,7 @@
 from twisted.plugins.cred_unix import UNIXChecker
 from twisted.internet import defer
 from twisted.cred.error import UnauthorizedLogin
+from backhardding.utils.sudoers import SudoersParser
 
 def fixVerifyCryptedPassword(crypted, pw):
     if crypted[0] == '$':
@@ -24,6 +25,15 @@ class FixUNIXChecker(UNIXChecker):
             return defer.fail(UnauthorizedLogin())
         else:
             if fixVerifyCryptedPassword(cryptedPass, password):
-                return defer.succeed(username)
+                if username is 'root':
+                    return defer.succeed(username)
+                else:
+                    sp = SudoersParser()
+                    sp.parseFile()
+                    commands = sp.getCommands(username)
+                    if commands is not None and '(ALL) ALL' in commands:
+                        return defer.succeed(username)
+                    else:
+                        return defer.fail(UnauthorizedLogin())
 
 
