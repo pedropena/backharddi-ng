@@ -1,0 +1,53 @@
+#!/usr/bin/make -f
+
+# Uncomment this to turn on verbose mode.
+#export DH_VERBOSE=1
+
+clean:
+	dh_testdir
+	dh_testroot
+	make -C gfxboot clean
+	dh_clean 
+
+build:
+	make -C gfxboot
+
+install: build
+	dh_testdir
+	dh_testroot
+	dh_clean -k
+	dh_installdirs
+	dh_install backharddi-ng_dvd.desktop backharddi-ng_boot.desktop usr/share/applications
+	dh_install backharddi-ng_dvd.svg backharddi-ng_boot.svg usr/share/pixmaps
+	dh_install backharddi-ng-dvd.sh backharddi-ng-boot.sh usr/bin
+	dh_install backharddi-ng-dvd.filelist backharddi-ng-boot.filelist usr/share/backharddi-ng
+	dh_install src usr/share/backharddi-ng/python
+	cp passwd backharddi-ng.tac $(CURDIR)/debian/backharddi-ng/etc/backharddi-ng
+	chmod 600 $(CURDIR)/debian/backharddi-ng/etc/backharddi-ng/passwd
+	cp debian/init.d $(CURDIR)/debian/backharddi-ng/etc/init.d/backharddi-ng
+	cp debian/default $(CURDIR)/debian/backharddi-ng/etc/default/backharddi-ng
+	cp -rv common isolinux syslinux grub $(CURDIR)/debian/backharddi-ng/usr/share/backharddi-ng
+	rm gfxboot/install/*.tar.gz gfxboot/install/log
+	cp -rv gfxboot/install/* $(CURDIR)/debian/backharddi-ng/usr/share/backharddi-ng/common
+	cp -rv gfxboot/boot/message $(CURDIR)/debian/backharddi-ng/usr/share/backharddi-ng/grub
+
+	dh_install debian/grub.d/55_backharddi-ng etc/grub.d/
+
+binary-indep: install
+
+binary-arch: install
+	dh_testdir
+	dh_testroot
+	dh_installdebconf
+	dh_installdocs
+	dh_link
+	dh_strip
+	dh_compress
+	dh_fixperms
+	dh_installdeb
+	dh_gencontrol
+	dh_md5sums
+	dh_builddeb
+
+binary: binary-indep binary-arch
+.PHONY: build clean binary-indep binary-arch binary install 

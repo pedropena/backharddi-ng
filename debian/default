@@ -1,0 +1,4 @@
+pidfile=/var/run/backharddi-ng.pid
+rundir=/var/lib/backharddi-ng/
+file=/etc/backharddi-ng/backharddi-ng.tac
+logfile=/var/log/backharddi-ng.log

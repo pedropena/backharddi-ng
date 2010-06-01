@@ -1,0 +1,11 @@
+usr/share/applications
+usr/share/menu
+usr/share/pixmaps
+usr/bin
+boot
+usr/share/backharddi-ng
+etc/grub.d
+etc/init.d
+etc/default
+etc/backharddi-ng
+var/lib/backharddi-ng

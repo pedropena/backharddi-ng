@@ -1,0 +1,36 @@
+.icon_accept { background-image: url(../media/icons/16x16/actions/apply.png) !important; }
+.icon_cancel { background-image: url(../media/icons/16x16/actions/cancel.png) !important; }
+.icon_close  { background-image: url(../media/icons/16x16/actions/fileclose.png) !important; }
+.icon_save { background-image: url(../media/icons/16x16/actions/filesave.png) !important; }
+.icon_reload { background-image: url(../media/icons/16x16/actions/reload.png) !important; }
+.icon_config { background-image: url(../media/icons/16x16/actions/configure.png) !important; }
+.icon_help { background-image: url(../media/icons/16x16/actions/agt_support.png) !important; }
+.icon_clients { background-image: url(media/icons/16x16/apps/display.png) !important; }
+.icon_groups { background-image: url(../media/icons/16x16/filesystems/folder_desktop.png) !important; }
+.icon_tasks { background-image: url(../media/icons/16x16/filesystems/exec.png) !important; }
+.icon_server { background-image: url(../media/icons/16x16/filesystems/server.png) !important; }
+.icon_help_use { background-image: url(../media/icons/16x16/apps/help_index.png) !important; }
+.icon_help_about { background-image: url(../media/icons/16x16/actions/help.png) !important; }
+.icon_console { background-image: url(../media/icons/16x16/apps/konsole.png) !important; }
+.icon_operations { background-image: url(../media/icons/16x16/actions/view_right.png) !important; }
+.icon_settings { background-image: url(../media/icons/16x16/filesystems/desktop.png) !important; }
+.icon_client { background-image: url(../media/icons/16x16/devices/chardevice.png) !important; }
+.icon_information { background-image: url(../media/icons/16x16/actions/info.png) !important; }
+.icon_confirm { background-image: url(../media/icons/16x16/actions/agt_support.png) !important; }
+.icon_error { background-image: url(../media/icons/16x16/actions/no.png) !important; }
+
+.client-view { }
+.client_source { padding: 2px 15px; font: 11px tahoma; cursor: pointer; -moz-user-select: none; }
+.client_source img { margin: -1px 4px -1px 0; width: 16px; height: 16px; vertical-align: middle; }
+.client_source.client_over { background-color: #e1e1e1; }
+.client_source.client_selected { background-color: #dbe9ee; }
+.client_source.client_disconnected { opacity: 0.3;
+   -ms-filter: "alpha(opacity=50)"; /* IE 8 */
+   filter: alpha(opacity=50);       /* IE 4-7 */
+   zoom: 1;       /* set "zoom", "width" or "height" to trigger "hasLayout" in IE 7 and lower */ 
+}
+
+.operations_drop_notifier { border-color: #00cc33; !important; }
+.div_banner { background-image: url(media/banner_background.png); background-position: center center; }
+.logo_left { }
+.logo_right { float: right; } 
