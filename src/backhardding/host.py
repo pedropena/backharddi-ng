@@ -43,27 +43,28 @@ class Host():
          'groups': [{'id': host.ip, 'name': host.ip, 'ip': host.ip, 'status': host.status, 'group': host.group, 'msg': host.msg} for host in cls.hosts.values() if host.group], 
          'clients': [{'id': host.ip, 'name': host.ip, 'ip': host.ip, 'status': host.status, 'group': None, 'msg': host.msg} for host in cls.hosts.values() if not host.group]
          }
-        cls.livemonitor.update(cls.status)
-#        if not Host.lockupdates:
-#            log.msg('Bloqueando updates')
-#            Host.lockupdates = True
-#            self.livemonitor.update({'groups': [], 'clients': [{'id': host.ip, 'name': host.ip, 'ip': host.ip, 'status': host.status, 'group': None } for host in self.hosts.values()]})
-#            reactor.callLater(2, self.unlockupdates)
+        if not Host.lockupdates:
+            log.msg('Bloqueando updates')
+            Host.lockupdates = True
+            cls.livemonitor.update(cls.status)
+            reactor.callLater(2, cls.unlockupdates)
     def __init__(self, request):
         self.ip = request.client.host
         self.hosts[self.ip] = self
         self.request = request
-        self.setTimeout(30)
+        self.deferred_command(30)
         self.group = None
         self.setStatus("Conectado")
-    def setTimeout(self,timeout,cmd='true'):
-        self.timeout = reactor.callLater(timeout, self.command, cmd)
+    def deferred_command(self,timeout,cmd='true'):
+        if hasattr(self, '_deferred_status') and self._deferred_status.active():
+            self._deferred_status.cancel()
+        self._deferred_command = reactor.callLater(timeout, self.command, cmd)
     def command(self, cmd):
         self.request.write(cmd)
         self.request.finish()
-        if self.timeout.active():
-            self.timeout.cancel()
-        self.setStatus("Desconectado")
+        if self._deferred_command.active():
+            self._deferred_command.cancel()
+        self._deferred_status = reactor.callLater(3, self.setStatus, "Desconectado")
     def __str__(self):
         if self.msg:
             return "%s %s: %s" % (self.ip, self.status, self.msg)

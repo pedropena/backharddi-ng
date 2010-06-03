@@ -12,10 +12,10 @@ class Partition():
     MOUNT = '/bin/mount'
     UMOUNT = '/bin/umount'
 
-    def __init__(self, data=None):
+    def __init__(self, data=None, mountdir = None, mounted = False):
         self.data = data
-        self.mountdir = None
-        self.previouslymounted = False
+        self.mountdir = mountdir
+        self.previouslymounted = mounted
         if data:
             if 'volume.mount_point' in data and data['volume.mount_point']:
                 log.msg('Particion de Backup previamente montada')

@@ -140,7 +140,7 @@ class Service(service.Service):
         Host.livemonitor = self.livemonitor
         reactor.callWhenRunning(self.initHal)
         reactor.callWhenRunning(self.scanLVM)
-#        reactor.callWhenRunning(self.startTftp)
+        reactor.callWhenRunning(self.startTftp)
         service.Service.startService(self)
 
     def processLabel(self, result, lv):
@@ -315,7 +315,7 @@ class Service(service.Service):
     def request_command(self, request):
         if request.client.host in self.hosts:
             self.hosts[request.client.host].request = request
-            self.hosts[request.client.host].setTimeout(30)
+            self.hosts[request.client.host].deferred_command(30)
             if self.hosts[request.client.host].status == 'Desconectado':
                 self.hosts[request.client.host].setStatus('Conectado')
         else:
@@ -374,6 +374,7 @@ LABEL LOCAL\n\
 LOCALBOOT 0\n\
 ')
             os.chmod(self.tftproot + os.sep + 'pxelinux.cfg' + os.sep + 'default',0666)
+#        self.procmon.addProcess('tftp',['/usr/sbin/dnsmasq','--port=0','-d','-R','-h','-C','/dev/null','-K','--log-dhcp','-F','192.168.56.1,192.168.56.255,255.255.255.0','-M','pxelinux.0, backharddi-ng, 192.168.56.1','--enable-tftp','--tftp-root=%s' % self.tftproot])
         self.procmon.addProcess('tftp',['/usr/sbin/dnsmasq','--port=0','-d','-R','-h','-C','/dev/null','--enable-tftp','--tftp-root=%s' % self.tftproot])
 
     def stopTftp(self):
