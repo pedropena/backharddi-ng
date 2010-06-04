@@ -112,6 +112,39 @@ var start = new Ext.util.DelayedTask(function(){
 	startStomp();
 })
 
+function processData(data){
+    clients = [];
+    groups = [];
+    for (i=0; i < data.length; i++) {
+		recordg = groupStore.getById(data[i].id);
+		recordc = clientStore.getById(data[i].id);
+    	if ( data[i].group == null ) {
+    		if ( recordg != undefined )
+    			groupStore.remove(recordg);
+    		if ( recordc == undefined )
+    			clients.push(data[i]);
+    		else {
+    			recordc.data['status'] = data[i].status;
+    			recordc.data['msg'] = data[i].msg;
+    			recordc.commit();
+    		}
+    	}
+    	else {
+    		if ( recordc != undefined )
+    			clientStore.remove(recordc);
+    		if ( recordg == undefined )
+    			groups.push(data[i]);
+    		else {
+    			recordg.data['status'] = data[i].status;
+    			recordg.data['msg'] = data[i].msg;
+    			recordg.commit();
+    		}
+    	}
+    }
+    clientStore.loadData(clients,true);
+    groupStore.loadData(groups,true);	
+}
+
 function startStomp(){
     stomp = new STOMPClient();
     stomp.onopen = function() {
@@ -120,8 +153,7 @@ function startStomp(){
             url: 'control/json_status',
             success: function(r) {
                 data = Ext.util.JSON.decode(r.responseText);
-                clientStore.loadData(data.clients);
-                groupStore.loadData(data.groups);            
+                processData(data);
             }
         });
     };
@@ -142,8 +174,7 @@ function startStomp(){
         // Recogemos el objeto JSON en una variable
         data = Ext.util.JSON.decode(frame.body);
         // Cargamos el objeto en los stores
-        clientStore.loadData(data.clients);
-        groupStore.loadData(data.groups);
+        processData(data);
     };
     stomp.connect('localhost', 61613);
 }
