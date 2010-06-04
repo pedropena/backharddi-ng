@@ -23,8 +23,6 @@ from twisted.internet import utils
 import shutil
 from twisted.web.server import NOT_DONE_YET
 from backhardding.host import Host
-from orbited import json
-
 
 DBusGMainLoop(set_as_default=True)
 
@@ -140,8 +138,15 @@ class Service(service.Service):
         Host.livemonitor = self.livemonitor
         reactor.callWhenRunning(self.initHal)
         reactor.callWhenRunning(self.scanLVM)
-        reactor.callWhenRunning(self.startTftp)
+#        reactor.callWhenRunning(self.startTftp)
+        reactor.callWhenRunning(self.sendStatus)
         service.Service.startService(self)
+
+    def sendStatus(self, timeout=2):
+        if Host.has_messages:
+            log.msg('Enviando estado al monitor')
+            Host.sendStatus()
+        self.send_status = reactor.callLater(timeout, self.sendStatus)
 
     def processLabel(self, result, lv):
         label, err, code = result
@@ -186,6 +191,8 @@ class Service(service.Service):
 
     def stopService(self):
         service.Service.stopService(self)
+        if self.send_status.active():
+            self.send_status.cancel()
         if self.tftproot:
             shutil.rmtree(self.tftproot)
         log.msg('Parando servicio...')
@@ -317,7 +324,7 @@ class Service(service.Service):
             self.hosts[request.client.host].request = request
             self.hosts[request.client.host].deferred_command(30)
             if self.hosts[request.client.host].status == 'Desconectado':
-                self.hosts[request.client.host].setStatus('Conectado')
+                self.hosts[request.client.host].setStatus('Conectado', interactive=True)
         else:
             Host(request)
         return NOT_DONE_YET

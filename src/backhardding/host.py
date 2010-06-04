@@ -11,7 +11,7 @@ class Host():
     hosts = {}
     groups = {}
     livemonitor = None
-    lockupdates = False
+    has_messages = False
     @classmethod
     def delFromGroup(cls, name, hosts):
         if name in cls.groups:
@@ -34,20 +34,10 @@ class Host():
             cls.hosts[host].group = name
         cls.sendStatus()
     @classmethod
-    def unlockupdates(cls):
-        log.msg('Desbloqueando updates')
-        cls.lockupdates = False
-    @classmethod
     def sendStatus(cls):
-        cls.status = {
-         'groups': [{'id': host.ip, 'name': host.ip, 'ip': host.ip, 'status': host.status, 'group': host.group, 'msg': host.msg} for host in cls.hosts.values() if host.group], 
-         'clients': [{'id': host.ip, 'name': host.ip, 'ip': host.ip, 'status': host.status, 'group': None, 'msg': host.msg} for host in cls.hosts.values() if not host.group]
-         }
-        if not Host.lockupdates:
-            log.msg('Bloqueando updates')
-            Host.lockupdates = True
-            cls.livemonitor.update(cls.status)
-            reactor.callLater(2, cls.unlockupdates)
+        cls.status = [{'id': host.ip, 'name': host.ip, 'ip': host.ip, 'status': host.status, 'group': host.group, 'msg': host.msg} for host in cls.hosts.values()]
+        cls.livemonitor.update(cls.status)
+        Host.has_messages = False
     def __init__(self, request):
         self.ip = request.client.host
         self.hosts[self.ip] = self
@@ -56,15 +46,13 @@ class Host():
         self.group = None
         self.setStatus("Conectado")
     def deferred_command(self,timeout,cmd='true'):
-        if hasattr(self, '_deferred_status') and self._deferred_status.active():
-            self._deferred_status.cancel()
         self._deferred_command = reactor.callLater(timeout, self.command, cmd)
     def command(self, cmd):
         self.request.write(cmd)
         self.request.finish()
         if self._deferred_command.active():
             self._deferred_command.cancel()
-        self._deferred_status = reactor.callLater(3, self.setStatus, "Desconectado")
+        self.setStatus("Desconectado")
     def __str__(self):
         if self.msg:
             return "%s %s: %s" % (self.ip, self.status, self.msg)
@@ -75,8 +63,10 @@ class Host():
             return "%s: %s" % (self.status, self.msg)
         else:
             return "%s" % (self.status)
-    def setStatus(self, status, msg=None):
+    def setStatus(self, status, msg=None, interactive=False):
         self.status = status
         if msg or not hasattr(self, 'msg'):
             self.msg = msg
-        self.sendStatus()
+        Host.has_messages = True
+        if interactive:
+            self.sendStatus()
