@@ -3,8 +3,9 @@ backharddi-ng (0.8) karmic; urgency=low
   * Añadidas dependencias que faltaban
   * Implementado sistema para parar el aluvión de mensajes hacia la interfaz web
   * Se mantiene la selección de clientes cuando se actualiza la lista de clientes 
+  * Se corrige el hook de grub-pc. Gracias a Mario Izquierdo
 
- -- Pedro Peña Pérez <pedro.pena@open-phoenix.com>  Fri, 04 Jun 2010 11:36:40 +0200
+ -- Pedro Peña Pérez <pedro.pena@open-phoenix.com>  Fri, 04 Jun 2010 11:46:01 +0200
 
 backharddi-ng (0.7) karmic; urgency=low
 
