@@ -41,7 +41,7 @@ class BackharddiNGControl(resource.Resource):
         if hasattr(Host, 'status'):
             return json.encode(Host.status)
         else:
-            return ''
+            return json.encode([])
 
     def to_secure_string(self, dir):
         paths = dir.split('/')

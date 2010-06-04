@@ -1,3 +1,16 @@
+backharddi-ng (0.10) karmic; urgency=high
+
+  * Corregido error en javascript cuando se mostraba la interfaz web y no había clientes
+    conectados
+
+ -- Pedro Peña Pérez <pedro.pena@open-phoenix.com>  Fri, 04 Jun 2010 14:10:31 +0200
+
+backharddi-ng (0.9) karmic; urgency=high
+
+  * Editada configuración residual para el desarrollo que dejaba el servicio no funcional
+
+ -- Pedro Peña Pérez <pedro.pena@open-phoenix.com>  Fri, 04 Jun 2010 13:43:01 +0200
+
 backharddi-ng (0.8) karmic; urgency=low
 
   * Añadidas dependencias que faltaban
