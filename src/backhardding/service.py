@@ -123,7 +123,7 @@ class UploadImgProtocol(Protocol):
 
 class Service(service.Service):
     implements(IService)
-    FILES = ['cmdline', 'device', 'mbr', 'model', 'pt', 'size', 'visuals', 'bootable',  'compresion', 'detected_filesystem', 'img', 'path', 'view', 'visual_filesystem', 'visual_mountpoint', 'cmosdump', 'postmaster', 'premaster', 'sti' ]
+    FILES = ['cmdline', 'device', 'mbr', 'model', 'pt', 'size', 'visuals', 'bootable',  'compresion', 'detected_filesystem', 'img', 'path', 'view', 'visual_filesystem', 'visual_mountpoint', 'cmosdump', 'postmaster', 'premaster', 'sti', 'ntfsclone', 'partclone' ]
 
     def __init__(self, procmon=None, livemonitor=None):
         self.procmon = procmon
@@ -352,6 +352,13 @@ class Service(service.Service):
                 log.msg('Status sin grupo')
                 self.do_add_to_group('Grupo %d' % (len(self.groups) + 1), [request.client.host])
             self.hosts[request.client.host].setStatus(status[0], msg[0])
+            if msg[0] == 'Completado':
+                def reboot():
+                    group = self.hosts[request.client.host].group
+                    if 'reboot' in self.groups[group]['config']:
+                        log.msg('Reiniciando %s' % request.client.host)
+                        self.do_command(request.client.host,'reboot')
+                reboot()
         else:
             raise Exception("Se ha enviado estado desde un Host inexistente")
         return ""

@@ -1,3 +1,9 @@
+backharddi-ng (0.11) lucid; urgency=low
+
+  * Compatibilidad con versión 0.7 de backharddi-ng-kernel. 
+
+ -- Pedro Peña Pérez <pedro.pena@open-phoenix.com>  Mon, 28 Jun 2010 11:33:05 +0200
+
 backharddi-ng (0.10) karmic; urgency=high
 
   * Corregido error en javascript cuando se mostraba la interfaz web y no había clientes

@@ -56,6 +56,8 @@ class BackharddiNGControl(resource.Resource):
 
     def group_config(self, hosts=[''], name=[''], modo=['rest'], reboot=None, backup=[''], launch=None):
         cmd = "backharddi/modo=%s backharddi/imagenes=/target/%s" % (modo[0], self.to_secure_string(backup[0]))
+        if reboot:
+            cmd = '%s backharddi/reboot=' % cmd
         self.backend.do_add_to_group(name[0],hosts[0].split(','),cmd)
         if launch:
             self.backend.do_launch_group(name[0])
