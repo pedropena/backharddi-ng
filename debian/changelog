@@ -1,3 +1,15 @@
+backharddi-ng (0.13) lucid; urgency=low
+
+  * Conflicto con backharddi-ng-net
+
+ -- Pedro Peña Pérez <pedro.pena@open-phoenix.com>  Thu, 16 Sep 2010 13:30:09 +0200
+
+backharddi-ng (0.12) lucid; urgency=low
+
+  * Reemplaza a backharddi-ng-net
+
+ -- Pedro Peña Pérez <pedro.pena@open-phoenix.com>  Thu, 16 Sep 2010 12:43:42 +0200
+
 backharddi-ng (0.11) lucid; urgency=low
 
   * Compatibilidad con versión 0.7 de backharddi-ng-kernel. 
