@@ -58,6 +58,6 @@ class Partition():
             raise Exception("Unable to mount.")
 
     def umount(self):
-        if self.mountdir:
+        if self.mountdir and not self.previouslymounted:
             log.msg('Desmontando %s' % self.mountdir)
             os.system("%s %s" % (self.UMOUNT, str(self.mountdir) ))

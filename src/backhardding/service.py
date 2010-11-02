@@ -25,6 +25,7 @@ from twisted.web.server import NOT_DONE_YET
 from backhardding.host import Host
 
 DBusGMainLoop(set_as_default=True)
+ROOT = '/var/lib/backharddi-ng'
 
 def toUnicode(s, encoding='utf-8'):
     return s if isinstance(s, unicode) else s.decode(encoding)
@@ -62,6 +63,7 @@ class UploadPackedMetadataProtocol(Protocol):
     def dataReceived(self, data):
         self.size += len(data)
         if self.size > self.MAXSIZE:
+            log.msg( "PackedMetadata > MAXSIZE" )
             self.transport.loseConnection()
         else:
             self.data += data
@@ -86,6 +88,7 @@ class UploadPackedMetadataFactory(Factory):
             except:
                 pass
             open(absname,'w').write(chunkdata)
+	self.port.stopListening()
             
 class UploadImgProtocol(Protocol):
 
@@ -132,7 +135,7 @@ class Service(service.Service):
     def startService(self):
         log.msg('Iniciando servicio...')
         self.tftproot = None
-        self.bngparts = []
+        self.bngparts = [ Partition( None, ROOT, True ) ]
         self.hosts = Host.hosts
         self.groups = Host.groups
         Host.livemonitor = self.livemonitor
@@ -261,7 +264,7 @@ class Service(service.Service):
         putfactory.base = self.bngparts[0].mountdir
         for portn in xrange(8000,8999):
             try:
-                reactor.listenTCP(portn, putfactory)
+                putfactory.port = reactor.listenTCP(portn, putfactory)
             except error.CannotListenError:
                 continue
             else:
