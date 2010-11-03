@@ -26,7 +26,7 @@ from backhardding.host import Host
 
 DBusGMainLoop(set_as_default=True)
 ROOT = '/var/lib/backharddi-ng'
-TFTPROOT = '/var/lib/tftpboot/backharddi-ng'
+TFTPROOT = '/var/lib/tftpboot'
 
 def toUnicode(s, encoding='utf-8'):
     return s if isinstance(s, unicode) else s.decode(encoding)
@@ -130,11 +130,11 @@ class Service(service.Service):
     implements(IService)
     FILES = ['cmdline', 'device', 'mbr', 'model', 'pt', 'size', 'visuals', 'bootable',  'compresion', 'detected_filesystem', 'img', 'path', 'view', 'visual_filesystem', 'visual_mountpoint', 'cmosdump', 'postmaster', 'premaster', 'sti', 'ntfsclone', 'partclone' ]
 
-    def __init__(self, procmon=None, livemonitor=None, root='/var/lib/backharddi-ng', tftproot='/var/lib/tftpboot/backharddi-ng'):
+    def __init__(self, procmon=None, livemonitor=None, root='/var/lib/backharddi-ng', tftproot='/var/lib/tftpboot'):
         self.procmon = procmon
         self.livemonitor = livemonitor
         self.tftproot = tftproot
-	self.root = root
+        self.root = root
 
     def startService(self):
         log.msg('Iniciando servicio...')
@@ -375,10 +375,11 @@ class Service(service.Service):
         reactor.callInThread( lambda: os.system('gnome-terminal -e "sshpass -p root ssh -o stricthostkeychecking=no -o UserKnownHostsFile=/dev/null installer@%s"' % host))
         
     def startTftp(self):
-        os.makedirs(self.tftproot + os.sep + 'pxelinux.cfg')
-        os.chmod(self.tftproot,0755)
-        os.chmod(self.tftproot + os.sep + 'pxelinux.cfg',0755)
-        open(self.tftproot + os.sep + 'pxelinux.cfg' + os.sep + 'default', 'w').write('''
+        self.tftpcfgdir = self.tftproot + os.sep + 'backharddi-ng'
+        os.makedirs(self.tftpcfgdir + os.sep + 'pxelinux.cfg')
+        os.chmod(self.tftpcfgdir,0755)
+        os.chmod(self.tftpcfgdir + os.sep + 'pxelinux.cfg',0755)
+        open(self.tftpcfgdir + os.sep + 'pxelinux.cfg' + os.sep + 'default', 'w').write('''
 DEFAULT menu.c32
 TIMEOUT 10
 MENU TITLE BACKHARDDI-NG
@@ -390,20 +391,20 @@ APPEND vga=788 video=vesa:ywrap,mtrr quiet backharddi/medio=net initrd=minirt-ba
 LABEL LOCAL
 LOCALBOOT 0
 ''')
-        os.chmod(self.tftproot + os.sep + 'pxelinux.cfg' + os.sep + 'default',0666)
+        os.chmod(self.tftpcfgdir + os.sep + 'pxelinux.cfg' + os.sep + 'default',0666)
         filelist = ['/usr/lib/syslinux/pxelinux.0', '/usr/lib/syslinux/menu.c32', '/boot/linux-backharddi-ng', '/boot/minirt-backharddi-ng.gz']
-        if not portInUse(67):
+        if not portInUse(69):
             for file in filelist:
-                os.symlink(file, self.tftproot + os.sep + os.path.basename(file))
+                os.symlink(file, self.tftpcfgdir + os.sep + os.path.basename(file))
 #            self.procmon.addProcess('tftp',['/usr/sbin/dnsmasq','--port=0','-d','-R','-h','-C','/dev/null','-K','--log-dhcp','-F','192.168.56.1,192.168.56.255,255.255.255.0','-M','pxelinux.0, backharddi-ng, 192.168.56.1','--enable-tftp','--tftp-root=%s' % self.tftproot])
             self.procmon.addProcess('tftp',['/usr/sbin/dnsmasq','--port=0','-d','-R','-h','-C','/dev/null','--enable-tftp','--tftp-root=%s' % self.tftproot])
         else:
             for file in filelist:
-                shutil.copy(file, self.tftproot + os.sep + os.path.basename(file))
+                shutil.copy(file, self.tftpcfgdir + os.sep + os.path.basename(file))
 
     def stopTftp(self):
-        if self.tftproot:
-            shutil.rmtree(self.tftproot)
+        if self.tftpcfgdir:
+            shutil.rmtree(self.tftpcfgdir)
         try:
             self.procmon.removeProcess('tftp')
         except:
