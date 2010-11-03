@@ -1,3 +1,16 @@
+backharddi-ng (0.14) lucid; urgency=low
+
+  * Posibilidad de funcionar sin partición de backup
+  * El puerto de subida de metadatos de la copia de seguridad se cierra al terminar la subida
+  * Ampliada la posibilidad de subida de metadatos a 16 MB
+  * Corregido error tipografico en scripts de generación de DVD's de recuperación y medios de arranque
+  * Posibilidad de generar DVD's de recuperación desde directorio local
+  * Parametrizado de directorio local almacen de copias de seguridad y directorio raiz donde se autogenerará la configuración para arranque por PXE
+  * En caso de no encontrarse un servicio de tftp funcionando al iniciar el servicio se arrancará.
+  * Se autogenera una configuración de tftp para arranque por PXE de Backharddi NG
+
+ -- Pedro Peña Pérez <pedro.pena@open-phoenix.com>  Wed, 03 Nov 2010 18:45:31 +0100
+
 backharddi-ng (0.13) lucid; urgency=low
 
   * Conflicto con backharddi-ng-net
