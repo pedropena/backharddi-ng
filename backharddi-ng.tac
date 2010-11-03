@@ -1,7 +1,7 @@
 PORT = 4600
 HTTPPORT = 9091
 ROOT = '/var/lib/backharddi-ng'
-TFTPROOT = '/var/lib/tftpboot/backharddi-ng'
+TFTPROOT = '/var/lib/tftpboot'
 
 import sys
 sys.path.insert(0,'/usr/share/backharddi-ng/python/src')
