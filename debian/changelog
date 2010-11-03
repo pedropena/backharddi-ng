@@ -1,3 +1,10 @@
+backharddi-ng (0.14.1) lucid; urgency=low
+
+  * Corregido error al autogenerar la configuración de tftp para arranque por PXE
+  * Corregido error tipográfico en el número de puerto de tftp
+
+ -- Pedro Peña Pérez <pedro.pena@open-phoenix.com>  Wed, 03 Nov 2010 19:18:19 +0100
+
 backharddi-ng (0.14) lucid; urgency=low
 
   * Posibilidad de funcionar sin partición de backup
