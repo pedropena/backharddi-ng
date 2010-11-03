@@ -257,7 +257,7 @@ $device_list"
 
 				# configurar permisos, ticket #247
 				if [ "$SUDO_UID" != "" ]; then
-					chmod ${SUDO_UID}:${SUDO_GID} $(cat $TMP_FILENAME) || true
+					chown ${SUDO_UID}:${SUDO_GID} $(cat $TMP_FILENAME) || true
 				fi
 			else
 				device=$(echo $grabador | cut -d" " -f 1) 

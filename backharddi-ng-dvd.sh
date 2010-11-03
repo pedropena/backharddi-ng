@@ -20,6 +20,7 @@ TAB='	'
 NL='
 '
 ERROR=/tmp/backharddi-ng_error
+ROOTDIR=/var/lib/backharddi-ng
 
 
 to_secure_string() {
@@ -50,28 +51,32 @@ error(){
 	 
 cd /tmp
 if ! grep -q $TMP_DIR /proc/mounts; then
-	MSG="¿Desea generar la imagen desde un servidor de imágenes o desde un dispositivo local?"
+	MSG="¿Desde dónde desea generar la imagen?"
 	while true; do
-		zenity --list --title "$TITLE" --text "$MSG" --column "Origen" "Servidor de imágenes" "Dispositivo local" > $TMP_RESPONSE || abort $?
+		zenity --list --title "$TITLE" --text "$MSG" --column "Origen" "Servidor de imágenes" "Dispositivo local" "Directorio local" > $TMP_RESPONSE || abort $?
 		origen=$(cat $TMP_RESPONSE)
 		case "$origen" in
 			Servidor*)
 				zenity --entry --title "$TITLE" --text "Seleccione el nombre o dirección ip del servidor:" --entry-text "" > $TMP_FILENAME || abort $?
 				backuppart="-t nfs -o nolock,proto=tcp $(cat $TMP_FILENAME):$TMP_DIR"
+				MSG="No se ha encontrado el servidor de imagenes en "$(cat $TMP_FILENAME)". ¿Desde dónde desea generar la imagen?"
 			;;
 			Dispositivo*)
 				backuppart=$(findfs LABEL=$MARCA)
 				if [ -z $backuppart ]; then
-					MSG="No se ha encontrado ninguna partición de backup. ¿Desea generar la imagen desde un servidor de imágenes o desde un dispositivo local?" 
+					MSG="No se ha encontrado ninguna partición de backup. ¿Desde dónde desea generar la imagen?" 
 					continue
 				fi
+			;;
+			Directorio*)
+				backuppart="-o bind $ROOTDIR"
+				MSG="No se ha encontrado el directorio de imagenes "$ROOTDIR". ¿Desde dónde desea generar la imagen?"
 			;;
 		esac
 
 		[ -d $TMP_DIR ] || mkdir $TMP_DIR
 		[ -f $TMP_SIZE_LIST ] && rm $TMP_SIZE_LIST
 		mount $backuppart $TMP_DIR 2>/dev/null && break
-		MSG="No se ha encontrado el servidor de imagenes en "$(cat $TMP_FILENAME)". ¿Desea generar la imagen desde un servidor de imágenes o desde un dispositivo local?"
 	done
 fi
 
@@ -200,7 +205,7 @@ while [ $medio -le $COUNT ]; do
 		{ mkisofs -r -f -iso-level 2 -V "Recuperación del Sistema $medio" -b boot/isolinux/isolinux.bin -c boot/isolinux/boot.cat -no-emul-boot -boot-load-size 4 -boot-info-table -hide-rr-moved -graft-points -path-list $TMP_FILE_LIST$medio -o $(cat $TMP_FILENAME) 2>&1 || touch $ERROR; } | sed -u 's/^[\ \t]*//' | tee /dev/stderr | zenity --progress --width 400 --title $TITLE --text "Generando CD/DVD de recuperación número $medio..." --auto-close
 		[ -f $ERROR ] && { error; continue; }
 		if [ "$SUDO_UID" != "" ]; then
-			chmod ${SUDO_UID}:${SUDO_GID} $(cat $TMP_FILENAME) || true
+			chown ${SUDO_UID}:${SUDO_GID} $(cat $TMP_FILENAME) || true
 		fi
 		file="$(cat $TMP_FILENAME | sed "s/_${medio}\./_$((medio+1))\./")"
 	else

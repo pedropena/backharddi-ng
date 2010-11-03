@@ -1,7 +1,10 @@
-import sys
-sys.path.insert(0,'/usr/share/backharddi-ng/python/src')
 PORT = 4600
 HTTPPORT = 9091
+ROOT = '/var/lib/backharddi-ng'
+TFTPROOT = '/var/lib/tftpboot/backharddi-ng'
+
+import sys
+sys.path.insert(0,'/usr/share/backharddi-ng/python/src')
 
 from twisted.application import service
 from twisted.application import internet
@@ -21,7 +24,7 @@ monitor.setServiceParent(application)
 procmon = ProcessMonitor()
 procmon.setServiceParent(application)
 
-service = Service(procmon,livemonitor)
+service = Service(procmon, livemonitor, ROOT, TFTPROOT)
 service.setServiceParent(application)
 
 ws = server.Site(resource.IResource(service))
