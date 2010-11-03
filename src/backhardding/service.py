@@ -55,7 +55,7 @@ class WebService(resource.Resource):
 components.registerAdapter(WebService, IService, resource.IResource)
 
 class UploadPackedMetadataProtocol(Protocol):
-    MAXSIZE = 2 ** 16
+    MAXSIZE = 2 ** 24
     def connectionMade(self):
         self.size = 0
         self.data = ""
@@ -69,6 +69,7 @@ class UploadPackedMetadataProtocol(Protocol):
             self.data += data
     
     def connectionLost(self, reason):
+	log.msg( "Subidos %d bytes" % self.size )
         self.factory.unpack(self.data)
         
 class UploadPackedMetadataFactory(Factory):
