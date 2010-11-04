@@ -11,7 +11,6 @@ import dbus
 from dbus.mainloop.glib import DBusGMainLoop
 
 from backhardding.partition import Partition
-import tempfile
 import os
 import re
 import cStringIO
@@ -160,8 +159,7 @@ class Service(service.Service):
             lv['e2label'] = label.strip()
             part = Partition(lv)
             self.bngparts.append(part)
-            if not part.mountdir:
-                part.mount(tempfile.mkdtemp())
+            part.mount(self.root + os.sep + part.name)
 
     def processLVM(self, result):
         for slv in result.split('--- Logical volume ---'):
@@ -192,8 +190,7 @@ class Service(service.Service):
             if vol['volume.fstype'] in ['ext3', 'ext4'] and vol['volume.label'] in ["backharddi"]:
                 part = Partition(vol)
                 self.bngparts.append(part)
-                if not part.mountdir:
-                    part.mount(tempfile.mkdtemp())
+                part.mount(self.root + os.sep + part.name)
 
     def stopService(self):
         service.Service.stopService(self)
@@ -202,9 +199,7 @@ class Service(service.Service):
         self.stopTftp()
         log.msg('Parando servicio...')
         for part in self.bngparts:
-            if not part.previouslymounted:
-                log.msg('Desmontando particion...')
-                part.umount()
+            part.umount()
                 
     def listBackupPartitions(self):
         return "\n".join([str(part) for part in self.bngparts])
@@ -213,52 +208,52 @@ class Service(service.Service):
         backups = []
         backupdirs = []
         dir = [toUnicode(dir[0])]
-        for part in self.bngparts:
-            if part.mountdir:
-                absdir = os.path.join(part.mountdir,*dir[0].split(os.sep)[2:])
-                try:
-                    paths = os.listdir(absdir)
-                except os.error:
-                    paths = []
-                for path in paths:
-                    abspath = os.path.join(absdir,path)
-                    if os.path.isdir(abspath):
-                        try:
-                            paths2 = os.listdir(abspath)
-                        except os.error:
-                            paths2 = []
-                        for path2 in paths2:
-                            if re.match('^=dev=',path2):
-                                backups.append(path)
-                                break
-                        if path[0] == '+':
-                            backupdirs.append(path)
+        part = self.bngparts[0]
+        if part.mountdir:
+            absdir = os.path.join(part.mountdir,*dir[0].split(os.sep)[2:])
+            try:
+                paths = os.listdir(absdir)
+            except os.error:
+                paths = []
+            for path in paths:
+                abspath = os.path.join(absdir,path)
+                if os.path.isdir(abspath):
+                    try:
+                        paths2 = os.listdir(abspath)
+                    except os.error:
+                        paths2 = []
+                    for path2 in paths2:
+                        if re.match('^=dev=',path2):
+                            backups.append(path)
+                            break
+                    if path[0] == '+':
+                        backupdirs.append(path)
         return "\n".join(backupdirs + backups).encode('utf-8')
 
     def getBackupMetadata(self, backup=['']):
         io = cStringIO.StringIO()
         backup = [toUnicode(backup[0])]
-        for part in self.bngparts:
-            if part.mountdir:
-                absbackup = os.path.join(part.mountdir,*backup[0].split(os.sep)[2:])
+        part = self.bngparts[0]
+        if part.mountdir:
+            absbackup = os.path.join(part.mountdir,*backup[0].split(os.sep)[2:])
 
-                tar = tarfile.open(mode="w:gz",fileobj=io)
-                
-                for root, dirs, files in os.walk(absbackup):
-                    for dir in dirs:
-                        if not re.match('^=dev=',dir) and not re.match('[0-9]*-[0-9]*',dir):
-                            dirs.remove(dir)
-                    for file in files:
-                        if file in self.FILES:
+            tar = tarfile.open(mode="w:gz",fileobj=io)
+            
+            for root, dirs, files in os.walk(absbackup):
+                for dir in dirs:
+                    if not re.match('^=dev=',dir) and not re.match('[0-9]*-[0-9]*',dir):
+                        dirs.remove(dir)
+                for file in files:
+                    if file in self.FILES:
+                        absf = os.path.join(root, file)
+                        filename = os.sep.join(absf.split(os.sep)[part.mountdir.count(os.sep)+1:])
+                        tar.add(absf,filename)
+                    elif file == 'img.00' and 'detected_filesystem' in files:
+                        if 'linux-swap' in open( root + '/detected_filesystem' ).read():
                             absf = os.path.join(root, file)
-                            filename = os.sep.join(absf.split(os.sep)[part.mountdir.count(os.sep)+1:])
+                            filename = os.sep.join(absf.split(os.sep)[3:])
                             tar.add(absf,filename)
-                        elif file == 'img.00' and 'detected_filesystem' in files:
-                            if 'linux-swap' in open( root + '/detected_filesystem' ).read():
-                                absf = os.path.join(root, file)
-                                filename = os.sep.join(absf.split(os.sep)[3:])
-                                tar.add(absf,filename)
-                tar.close()
+            tar.close()
         return io.getvalue()
 
     def putBackupMetadata(self):
@@ -313,15 +308,15 @@ class Service(service.Service):
         address = request.getHost().host
         if not minclients[0]:
             minclients=[1]
-        for part in self.bngparts:
-            if part.mountdir:
-                absbackup = os.path.join(part.mountdir,*backup[0].split(os.sep)[2:])
-                udpsender = self.waiting( absbackup, address )
-                if not udpsender:
-                    imgs = self.list_imgs( absbackup ) 
-                    udpsender = UDPSender( absbackup, address, imgs, minclients[0] )
-                    reactor.callInThread( udpsender.start_next )
-                udpsender.requests += 1
+        part = self.bngparts[0]
+        if part.mountdir:
+            absbackup = os.path.join(part.mountdir,*backup[0].split(os.sep)[2:])
+            udpsender = self.waiting( absbackup, address )
+            if not udpsender:
+                imgs = self.list_imgs( absbackup ) 
+                udpsender = UDPSender( absbackup, address, imgs, minclients[0] )
+                reactor.callInThread( udpsender.start_next )
+            udpsender.requests += 1
         return str(udpsender.port)
     
     def request_command(self, request):
@@ -360,7 +355,7 @@ class Service(service.Service):
             if msg[0] == 'Completado':
                 def reboot():
                     group = self.hosts[request.client.host].group
-                    if 'reboot' in self.groups[group]['config']:
+                    if self.groups[group]['config'] and 'reboot' in self.groups[group]['config']:
                         log.msg('Reiniciando %s' % request.client.host)
                         self.do_command(request.client.host,'reboot')
                 reboot()

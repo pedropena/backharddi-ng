@@ -1,0 +1,4 @@
+#!/bin/bash
+
+ip=$(echo $1 | sed "s/backharddi-ng:\/\///")
+gnome-terminal --title "Backharddi NG - $ip" --maximize -x /usr/bin/sshpass -p root /usr/bin/ssh installer@$ip -o "StrictHostKeyChecking no" -o "UserKnownHostsFile /dev/null"

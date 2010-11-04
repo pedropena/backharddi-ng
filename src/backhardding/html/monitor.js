@@ -199,7 +199,8 @@ function onClientContextMenu(view, index, item, e) {
 				scope: this,
 				text: 'Controlar Remotamente',
 				handler: function(b, e) {
-					alert('Función no implementada');
+					for (i = 0; i < this.clientRecords.length; i++)
+						window.open('backharddi-ng://' + this.clientRecords[i].data['ip']);
 				}
 		}]
 		});
@@ -238,7 +239,8 @@ function onGroupRowContextMenu(g, rowIndex, e) {
 			scope: this,
 			text: 'Controlar Remotamente',
 			handler: function(b, e) {
-				alert('Función no implementada');
+				for (i = 0; i < this.clientRecords.length; i++)
+					window.open('backharddi-ng://' + this.clientRecords[i].data['ip']);
 			}
 		},{
 			scope: this,

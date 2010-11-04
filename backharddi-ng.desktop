@@ -1,0 +1,9 @@
+[Desktop Entry]
+Version=1.0
+Encoding=UTF-8
+Type=Application
+Categories=Application;Accesories;GNOME;System
+Exec=sensible-browser http://localhost:9091
+Name=Backharddi NG
+Comment=Consola de administración de Backharddi NG
+Icon=backharddi-ng.png
