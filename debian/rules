@@ -17,9 +17,9 @@ install: build
 	dh_testroot
 	dh_clean -k
 	dh_installdirs
-	dh_install backharddi-ng_dvd.desktop backharddi-ng_boot.desktop usr/share/applications
-	dh_install backharddi-ng_dvd.svg backharddi-ng_boot.svg usr/share/pixmaps
-	dh_install backharddi-ng-dvd.sh backharddi-ng-boot.sh usr/bin
+	dh_install backharddi-ng.desktop backharddi-ng_dvd.desktop backharddi-ng_boot.desktop usr/share/applications
+	dh_install backharddi-ng.png backharddi-ng_dvd.svg backharddi-ng_boot.svg usr/share/pixmaps
+	dh_install backharddi-ng-dvd.sh backharddi-ng-boot.sh backharddi-ng-url usr/bin
 	dh_install backharddi-ng-dvd.filelist backharddi-ng-boot.filelist usr/share/backharddi-ng
 	dh_install src usr/share/backharddi-ng/python
 	cp passwd backharddi-ng.tac $(CURDIR)/debian/backharddi-ng/etc/backharddi-ng
@@ -40,6 +40,7 @@ binary-arch: install
 	dh_testroot
 	dh_installdebconf
 	dh_installdocs
+	dh_gconf
 	dh_link
 	dh_strip
 	dh_compress
