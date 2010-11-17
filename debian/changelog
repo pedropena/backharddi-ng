@@ -1,3 +1,10 @@
+backharddi-ng (0.16) lucid; urgency=low
+
+  * Los medios de arranque basados en pendrive se generan con syslinux exclusivamente
+    y con mejor compatibilidad con ciertas BIOS
+
+ -- Pedro Peña Pérez <pedro.pena@open-phoenix.com>  Mon, 15 Nov 2010 14:01:42 +0100
+
 backharddi-ng (0.15) lucid; urgency=low
 
   * Añadido lanzador al menu aplicaciones
