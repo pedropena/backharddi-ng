@@ -214,7 +214,7 @@ while [ $medio -le $COUNT ]; do
 		if [ $MEDIO = "CD" ]; then
 			{ mkisofs -r -f -iso-level 2 -V "Recuperación del Sistema $medio" -b boot/isolinux/isolinux.bin -c boot/isolinux/boot.cat -no-emul-boot -boot-load-size 4 -boot-info-table -hide-rr-moved -graft-points -path-list $TMP_FILE_LIST$medio | cdrecord driveropts=burnfree gracetime=2 dev=$device - 2>&1 || touch $ERROR; } | sed -u 's/^[\ \t]*//' | tee /dev/stderr | zenity --progress --width 400 --title $TITLE --text "Generando CD/DVD de recuperación número $medio..." --auto-close
 		else
-			{ growisofs -dvd-compat -Z $device -r -iso-level 2 -V "Recuperación del Sistema $medio" -b boot/isolinux/isolinux.bin -c boot/isolinux/boot.cat -no-emul-boot -boot-load-size 4 -boot-info-table -hide-rr-moved -graft-points -path-list $TMP_FILE_LIST$medio 2>&1 || touch $ERROR; } | sed -u 's/^[\ \t]*//' | tee /dev/stderr | zenity --progress --width 400 --title $TITLE --text "Generando CD/DVD de recuperación número $medio..." --auto-close
+			{ growisofs -dvd-compat -Z $device -r -f -iso-level 2 -V "Recuperación del Sistema $medio" -b boot/isolinux/isolinux.bin -c boot/isolinux/boot.cat -no-emul-boot -boot-load-size 4 -boot-info-table -hide-rr-moved -graft-points -path-list $TMP_FILE_LIST$medio 2>&1 || touch $ERROR; } | sed -u 's/^[\ \t]*//' | tee /dev/stderr | zenity --progress --width 400 --title $TITLE --text "Generando CD/DVD de recuperación número $medio..." --auto-close
 		fi
 		[ -f $ERROR ] && { error; continue; }
 		eject $device
