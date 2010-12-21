@@ -1,3 +1,16 @@
+backharddi-ng (0.17) lucid; urgency=low
+
+  * Se autoconfigura y arranca servicio de proxy DHCP para arrancar equipos por PXE
+    sin necesidad de configurar el servicio DHCP de la red.
+  * Se establece el parámetro backharddi/net/server para que los equipos que arranquen
+    por PXE encuentren en cualquier caso al servidor de Backharddi NG.
+  * Añadido parámetro a growisofs para que se sigan enlaces y así generar
+    correctamente DVD's de recuperación cuando se graban al vuelo.
+  * Añadida la posibilidad de seleccionar qué van a arrancar los equipos en el
+    siguiente arranque
+
+ -- Pedro Peña Pérez <pedro.pena@open-phoenix.com>  Tue, 21 Dec 2010 11:55:10 +0100
+
 backharddi-ng (0.16) lucid; urgency=low
 
   * Los medios de arranque basados en pendrive se generan con syslinux exclusivamente
