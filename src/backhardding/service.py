@@ -26,6 +26,21 @@ from backhardding.host import Host
 DBusGMainLoop(set_as_default=True)
 ROOT = '/var/lib/backharddi-ng'
 TFTPROOT = '/var/lib/tftpboot'
+TFTP_TEMPLATE = '''DEFAULT menu.c32
+TIMEOUT 30
+MENU TITLE BACKHARDDI-NG
+
+LABEL BACKHARDDI-NG-NET
+KERNEL linux-backharddi-ng
+APPEND vga=788 video=vesa:ywrap,mtrr quiet backharddi/medio=net %s initrd=minirt-backharddi-ng.gz --
+
+LABEL BACKHARDDI-NG-HD
+KERNEL linux-backharddi-ng
+APPEND vga=788 video=vesa:ywrap,mtrr quiet backharddi/medio=hd-media initrd=minirt-backharddi-ng.gz --
+
+LABEL LOCAL
+LOCALBOOT 0
+'''
 
 def toUnicode(s, encoding='utf-8'):
     return s if isinstance(s, unicode) else s.decode(encoding)
@@ -144,6 +159,7 @@ class Service(service.Service):
         reactor.callWhenRunning(self.initHal)
         reactor.callWhenRunning(self.scanLVM)
         reactor.callWhenRunning(self.startTftp)
+        reactor.callWhenRunning(self.startProxyDhcp)
         reactor.callWhenRunning(self.sendStatus)
         service.Service.startService(self)
 
@@ -196,6 +212,7 @@ class Service(service.Service):
         service.Service.stopService(self)
         if self.send_status.active():
             self.send_status.cancel()
+        self.stopProxyDhcp()
         self.stopTftp()
         log.msg('Parando servicio...')
         for part in self.bngparts:
@@ -370,23 +387,31 @@ class Service(service.Service):
         reactor.callInThread( lambda: os.system('gnome-terminal -e "sshpass -p root ssh -o stricthostkeychecking=no -o UserKnownHostsFile=/dev/null installer@%s"' % host))
         
     def startTftp(self):
+        import netifaces
+        import ipaddr
+        ifaces = []
+        for iface in netifaces.interfaces():
+            if iface == 'lo':
+                continue
+            addresses = netifaces.ifaddresses(iface)
+            if 2 in addresses:
+                for address in addresses[2]:
+                    if 'addr' in address:
+                        ifaces.append({ 'iface': iface, 'addr': ipaddr.IPNetwork( "%s/%s" % (address['addr'],address['netmask']))})
+                        break
+         
         self.tftpcfgdir = self.tftproot + os.sep + 'backharddi-ng'
         os.makedirs(self.tftpcfgdir + os.sep + 'pxelinux.cfg')
         os.chmod(self.tftpcfgdir,0755)
         os.chmod(self.tftpcfgdir + os.sep + 'pxelinux.cfg',0755)
-        open(self.tftpcfgdir + os.sep + 'pxelinux.cfg' + os.sep + 'default', 'w').write('''
-DEFAULT menu.c32
-TIMEOUT 10
-MENU TITLE BACKHARDDI-NG
-
-LABEL BACKHARDDI-NG-NET
-KERNEL linux-backharddi-ng
-APPEND vga=788 video=vesa:ywrap,mtrr quiet backharddi/medio=net initrd=minirt-backharddi-ng.gz --
-
-LABEL LOCAL
-LOCALBOOT 0
-''')
+        open(self.tftpcfgdir + os.sep + 'pxelinux.cfg' + os.sep + 'default', 'w').write( TFTP_TEMPLATE % '')
         os.chmod(self.tftpcfgdir + os.sep + 'pxelinux.cfg' + os.sep + 'default',0666)
+        
+        for address in ifaces:
+            filename = ('%X' % address['addr'])[:address['addr'].prefixlen/4]
+            open(self.tftpcfgdir + os.sep + 'pxelinux.cfg' + os.sep + filename, 'w').write( TFTP_TEMPLATE % 'backharddi/net/server=%s' % address['addr'].ip )
+            os.chmod(self.tftpcfgdir + os.sep + 'pxelinux.cfg' + os.sep + filename,0666)
+        
         filelist = ['/usr/lib/syslinux/pxelinux.0', '/usr/lib/syslinux/menu.c32', '/boot/linux-backharddi-ng', '/boot/minirt-backharddi-ng.gz']
         if not portInUse(69):
             for file in filelist:
@@ -405,6 +430,27 @@ LOCALBOOT 0
         except:
             pass
 
+    def startProxyDhcp(self):
+        if not portInUse(67):
+            import netifaces
+            cmdline = ['/usr/sbin/dnsmasq','--port=0','-d','-R','-h','-C','/dev/null','--pxe-service=x86PC,Backharddi-NG,backharddi-ng/pxelinux', '--log-dhcp']
+            for iface in netifaces.interfaces():
+                if iface == 'lo':
+                    continue
+                addresses = netifaces.ifaddresses(iface)
+                if 2 in addresses:
+                    for address in addresses[2]:
+                        if 'addr' in address:
+                            cmdline.append('--dhcp-range=%s,proxy' % address['addr'])
+                            break
+            self.procmon.addProcess('proxydhcp',cmdline)
+
+    def stopProxyDhcp(self):
+        try:
+            self.procmon.removeProcess('proxydhcp')
+        except:
+            pass
+            
 def portInUse(port,proto='udp'):
     f = open('/proc/net/' + proto)
     for con in f.readlines()[1:]:
