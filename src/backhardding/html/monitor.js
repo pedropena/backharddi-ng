@@ -94,14 +94,48 @@ Ext.onReady(function() {
             cls: 'app-header',
             layout: 'fit',
             region: 'north',
+            height: 75,
             html: '<div class="div_banner"><img class="logo_left" src="media/banner_left.png" /><img class="logo_right" src="media/banner_right.png" /></div>',
             margins: '5 5 5 5'
         }, {
-            title: 'Clientes',
-            region: 'west',
-            width: 200,
+        	region: 'west',
+        	layout: 'border',
+        	width: 200,
             margins: '0 5 5 5',
-            items: clientView
+        	items: [{
+	            title: 'Configuración',
+	            region: 'north',
+	            height: 'auto',
+	            items: [{
+            	    text: 'Arrancar equipos en...',
+                    enableToggle : undefined,
+                    width: 'auto',
+                    menu : { 
+	            		items: [
+	            		        { text:'Backharddi NG Net',
+	            		          checked: true,
+	            		          group: 'theme',
+	            		          checkHandler: arrancarEquipos
+	            		        },
+	            		        { text:'Backharddi NG HD',
+	            		          checked: false,
+	            		          group: 'theme',
+	            		          checkHandler: arrancarEquipos
+	            		        },
+	            		        { text:'Disco Duro Local',
+	            		          checked: false,
+	            		          group: 'theme',
+	            		          checkHandler: arrancarEquipos
+	            		        }
+	            		       ]
+	            	},
+	                xtype: 'button'
+	            }]
+        	}, {
+	            title: 'Clientes',
+	            region: 'center',
+	            items: clientView
+        	}],
         }, groupGrid ]
     });
 
@@ -111,6 +145,15 @@ Ext.onReady(function() {
 var start = new Ext.util.DelayedTask(function(){
 	startStomp();
 })
+
+function arrancarEquipos(item,checked){
+	if (checked) {
+		Ext.Ajax.request({
+        	url: 'control/set_boot',
+        	params: { 'boot': item.text },
+        });
+	}
+}
 
 function processData(data){
     clients = [];

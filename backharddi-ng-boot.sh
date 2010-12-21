@@ -20,7 +20,6 @@ NL='
 '
 DOS_VOLUME_ID=bacadd10
 SYSLINUX_DIR=/usr/share/backharddi-ng/syslinux
-GRUB_DIR=/usr/share/backharddi-ng/grub
 COMMON_DIR=/usr/share/backharddi-ng/common
 FIFO=/tmp/progress_fifo
 ERROR=/tmp/backharddi-ng_error

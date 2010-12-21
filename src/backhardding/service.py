@@ -24,8 +24,22 @@ from twisted.web.server import NOT_DONE_YET
 from backhardding.host import Host
 
 DBusGMainLoop(set_as_default=True)
-ROOT = '/var/lib/backharddi-ng'
-TFTPROOT = '/var/lib/tftpboot'
+TFTP_TEMPLATE = '''DEFAULT menu.c32
+TIMEOUT 30
+MENU TITLE BACKHARDDI-NG
+
+LABEL Backharddi NG Net
+MENU DEFAULT
+KERNEL linux-backharddi-ng
+APPEND vga=788 video=vesa:ywrap,mtrr quiet backharddi/medio=net %s initrd=minirt-backharddi-ng.gz --
+
+LABEL Backharddi NG HD
+KERNEL linux-backharddi-ng
+APPEND vga=788 video=vesa:ywrap,mtrr quiet backharddi/medio=hd-media initrd=minirt-backharddi-ng.gz --
+
+LABEL Disco Duro Local
+LOCALBOOT 0
+'''
 
 def toUnicode(s, encoding='utf-8'):
     return s if isinstance(s, unicode) else s.decode(encoding)
@@ -129,11 +143,13 @@ class Service(service.Service):
     implements(IService)
     FILES = ['cmdline', 'device', 'mbr', 'model', 'pt', 'size', 'visuals', 'bootable',  'compresion', 'detected_filesystem', 'img', 'path', 'view', 'visual_filesystem', 'visual_mountpoint', 'cmosdump', 'postmaster', 'premaster', 'sti', 'ntfsclone', 'partclone' ]
 
-    def __init__(self, procmon=None, livemonitor=None, root='/var/lib/backharddi-ng', tftproot='/var/lib/tftpboot'):
+    def __init__(self, procmon=None, livemonitor=None, root='/var/lib/backharddi-ng', tftproot='/var/lib/tftpboot', tftprootsuffix=None):
         self.procmon = procmon
         self.livemonitor = livemonitor
         self.tftproot = tftproot
+        self.tftpcfgdir = tftproot + os.sep + tftprootsuffix if tftprootsuffix else tftproot
         self.root = root
+        self.tftpcfgfiles = []
 
     def startService(self):
         log.msg('Iniciando servicio...')
@@ -144,6 +160,7 @@ class Service(service.Service):
         reactor.callWhenRunning(self.initHal)
         reactor.callWhenRunning(self.scanLVM)
         reactor.callWhenRunning(self.startTftp)
+        reactor.callWhenRunning(self.startProxyDhcp)
         reactor.callWhenRunning(self.sendStatus)
         service.Service.startService(self)
 
@@ -196,6 +213,7 @@ class Service(service.Service):
         service.Service.stopService(self)
         if self.send_status.active():
             self.send_status.cancel()
+        self.stopProxyDhcp()
         self.stopTftp()
         log.msg('Parando servicio...')
         for part in self.bngparts:
@@ -368,25 +386,41 @@ class Service(service.Service):
 
     def do_ssh(self, host):
         reactor.callInThread( lambda: os.system('gnome-terminal -e "sshpass -p root ssh -o stricthostkeychecking=no -o UserKnownHostsFile=/dev/null installer@%s"' % host))
-        
+
+    def do_set_boot(self, boot):
+        for file in self.tftpcfgfiles:
+            cfg = open(self.tftpcfgdir + os.sep + file).read()
+            f = open(self.tftpcfgdir + os.sep + file,'w')
+            f.write(cfg.replace('\nMENU DEFAULT','').replace('LABEL %s' % boot, 'LABEL %s\nMENU DEFAULT' % boot ))
+            f.close()
+            
     def startTftp(self):
-        self.tftpcfgdir = self.tftproot + os.sep + 'backharddi-ng'
+        import netifaces
+        import ipaddr
+        ifaces = []
+        for iface in netifaces.interfaces():
+            if iface == 'lo':
+                continue
+            addresses = netifaces.ifaddresses(iface)
+            if 2 in addresses:
+                for address in addresses[2]:
+                    if 'addr' in address:
+                        ifaces.append({ 'iface': iface, 'addr': ipaddr.IPNetwork( "%s/%s" % (address['addr'],address['netmask']))})
+                        break
+         
         os.makedirs(self.tftpcfgdir + os.sep + 'pxelinux.cfg')
         os.chmod(self.tftpcfgdir,0755)
         os.chmod(self.tftpcfgdir + os.sep + 'pxelinux.cfg',0755)
-        open(self.tftpcfgdir + os.sep + 'pxelinux.cfg' + os.sep + 'default', 'w').write('''
-DEFAULT menu.c32
-TIMEOUT 10
-MENU TITLE BACKHARDDI-NG
-
-LABEL BACKHARDDI-NG-NET
-KERNEL linux-backharddi-ng
-APPEND vga=788 video=vesa:ywrap,mtrr quiet backharddi/medio=net initrd=minirt-backharddi-ng.gz --
-
-LABEL LOCAL
-LOCALBOOT 0
-''')
+        self.tftpcfgfiles.append('pxelinux.cfg' + os.sep + 'default')
+        open(self.tftpcfgdir + os.sep + 'pxelinux.cfg' + os.sep + 'default', 'w').write( TFTP_TEMPLATE % '')
         os.chmod(self.tftpcfgdir + os.sep + 'pxelinux.cfg' + os.sep + 'default',0666)
+        
+        for address in ifaces:
+            filename = ('%X' % address['addr'])[:address['addr'].prefixlen/4]
+            self.tftpcfgfiles.append('pxelinux.cfg' + os.sep + filename)
+            open(self.tftpcfgdir + os.sep + 'pxelinux.cfg' + os.sep + filename, 'w').write( TFTP_TEMPLATE % 'backharddi/net/server=%s' % address['addr'].ip )
+            os.chmod(self.tftpcfgdir + os.sep + 'pxelinux.cfg' + os.sep + filename,0666)
+        
         filelist = ['/usr/lib/syslinux/pxelinux.0', '/usr/lib/syslinux/menu.c32', '/boot/linux-backharddi-ng', '/boot/minirt-backharddi-ng.gz']
         if not portInUse(69):
             for file in filelist:
@@ -405,6 +439,27 @@ LOCALBOOT 0
         except:
             pass
 
+    def startProxyDhcp(self):
+        if not portInUse(67):
+            import netifaces
+            cmdline = ['/usr/sbin/dnsmasq','--port=0','-d','-R','-h','-C','/dev/null','--pxe-service=x86PC,Backharddi-NG,backharddi-ng/pxelinux', '--log-dhcp']
+            for iface in netifaces.interfaces():
+                if iface == 'lo':
+                    continue
+                addresses = netifaces.ifaddresses(iface)
+                if 2 in addresses:
+                    for address in addresses[2]:
+                        if 'addr' in address:
+                            cmdline.append('--dhcp-range=%s,proxy' % address['addr'])
+                            break
+            self.procmon.addProcess('proxydhcp',cmdline)
+
+    def stopProxyDhcp(self):
+        try:
+            self.procmon.removeProcess('proxydhcp')
+        except:
+            pass
+            
 def portInUse(port,proto='udp'):
     f = open('/proc/net/' + proto)
     for con in f.readlines()[1:]:
