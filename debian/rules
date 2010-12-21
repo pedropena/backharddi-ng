@@ -26,7 +26,7 @@ install: build
 	chmod 600 $(CURDIR)/debian/backharddi-ng/etc/backharddi-ng/passwd
 	cp debian/init.d $(CURDIR)/debian/backharddi-ng/etc/init.d/backharddi-ng
 	cp debian/default $(CURDIR)/debian/backharddi-ng/etc/default/backharddi-ng
-	cp -rv common isolinux syslinux grub $(CURDIR)/debian/backharddi-ng/usr/share/backharddi-ng
+	cp -rv common isolinux syslinux $(CURDIR)/debian/backharddi-ng/usr/share/backharddi-ng
 	rm gfxboot/install/*.tar.gz gfxboot/install/log
 	cp -rv gfxboot/install/* $(CURDIR)/debian/backharddi-ng/usr/share/backharddi-ng/common
 	cp -rv gfxboot/boot/message $(CURDIR)/debian/backharddi-ng/usr/share/backharddi-ng/grub
