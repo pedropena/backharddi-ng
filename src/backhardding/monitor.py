@@ -76,6 +76,10 @@ class BackharddiNGControl(resource.Resource):
             self.backend.do_command(host, 'reboot')
         return ''
     
+    def set_boot(self, boot):
+        self.backend.do_set_boot(boot[0])
+        return ''
+    
     def tree(self, node):
         if node[0] == 'root':
             n = '/target'
