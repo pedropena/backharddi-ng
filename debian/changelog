@@ -1,3 +1,9 @@
+backharddi-ng (0.17.1) lucid; urgency=low
+
+  * Arreglado fallo de construcción
+
+ -- Pedro Peña Pérez <pedro@laptop>  Tue, 21 Dec 2010 17:37:26 +0100
+
 backharddi-ng (0.17) lucid; urgency=low
 
   * Se autoconfigura y arranca servicio de proxy DHCP para arrancar equipos por PXE
