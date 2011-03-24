@@ -9,6 +9,7 @@ from twisted.protocols.basic import FileSender
 from zope.interface import implements
 from twisted.internet import interfaces
 from twisted.internet.protocol import ProcessProtocol
+import backhardding.service
 import glob
 
 UDPSENDER = '/usr/bin/udp-sender'
@@ -27,7 +28,7 @@ class UDPSender():
         self.maxwait = 0
         self.port = PORTBASE
         active_ports = [ udpsender.port for backup in UDPSender.active.itervalues() for udpsender in backup ]
-        while self.port in active_ports:
+        while self.port in active_ports or backhardding.service.portInUse(self.port + 1):
             self.port += 2
         self.set_active()
     
@@ -95,6 +96,7 @@ class UDPSenderProtocol( ProcessProtocol ):
             self.transport.closeStdin()
     
     def transferAbort(self, exception):
+        self.udpsender.finish = False
         self.udpsender.unset_active()
         self.udpsender.log("Transferencia abortada")
 
