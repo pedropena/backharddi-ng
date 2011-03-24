@@ -18,6 +18,7 @@ from backhardding.service import Service
 from backhardding.monitor import setupSite, LiveMonitor
 from twisted.conch import manhole_tap
 from morbid.morbid import StompFactory
+from backhardding.udpsender import UDPSender
 
 application = service.Application("Backharddi NG")
 
@@ -35,7 +36,7 @@ ws = server.Site(resource.IResource(service))
 internet.TCPServer( PORT, ws ).setServiceParent(application)
 
 manhole = manhole_tap.makeService({
-    'namespace': {'service': service},
+    'namespace': {'service': service, 'udpsender': UDPSender},
     'telnetPort': None,
     'sshPort': 'tcp:%d:interface=127.0.0.1' % (PORT+1),
     'passwd': '/etc/backharddi-ng/passwd'

@@ -1,3 +1,18 @@
+backharddi-ng (0.18) lucid; urgency=low
+
+  * Corregido error al manejar udp-sender por el cual se servia el siguiente fichero
+    aunque la transferencia se hubiera abortado.
+  * Se comprueba que el puerto no esté ocupado para levantar un nuevo manejador de
+    udp-sender.
+
+ -- Pedro Peña Pérez <pedro.pena@open-phoenix.com>  Thu, 24 Mar 2011 12:19:07 +0100
+
+backharddi-ng (0.17.1) lucid; urgency=low
+
+  * Arreglado fallo de construcción
+
+ -- Pedro Peña Pérez <pedro.pena@open-phoenix.com>  Tue, 21 Dec 2010 17:37:26 +0100
+
 backharddi-ng (0.17) lucid; urgency=low
 
   * Se autoconfigura y arranca servicio de proxy DHCP para arrancar equipos por PXE
