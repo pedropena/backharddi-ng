@@ -243,9 +243,17 @@ function onClientContextMenu(view, index, item, e) {
 				text: 'Controlar Remotamente',
 				handler: function(b, e) {
 					for (i = 0; i < this.clientRecords.length; i++)
-						window.open('backharddi-ng://' + this.clientRecords[i].data['ip']);
+						w = window.open('backharddi-ng://installer@' + this.clientRecords[i].data['ip']);
+						w.close();
 				}
-		}]
+			},{
+				scope: this,
+				text: 'Lanzar Consola',
+				handler: function(b, e) {
+					for (i = 0; i < this.clientRecords.length; i++)
+						w = window.open('backharddi-ng://busybox@' + this.clientRecords[i].data['ip']);
+						w.close();
+			}}]
 		});
 	}
     var sourceEl = e.getTarget();
@@ -283,7 +291,16 @@ function onGroupRowContextMenu(g, rowIndex, e) {
 			text: 'Controlar Remotamente',
 			handler: function(b, e) {
 				for (i = 0; i < this.clientRecords.length; i++)
-					window.open('backharddi-ng://' + this.clientRecords[i].data['ip']);
+					w = window.open('backharddi-ng://installer@' + this.clientRecords[i].data['ip']);
+					w.close();
+			}
+		},{
+			scope: this,
+			text: 'Lanzar consola Busybox',
+			handler: function(b, e) {
+				for (i = 0; i < this.clientRecords.length; i++)
+					w = window.open('backharddi-ng://busybox@' + this.clientRecords[i].data['ip']);
+					w.close();
 			}
 		},{
 			scope: this,

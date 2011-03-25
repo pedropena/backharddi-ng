@@ -1,4 +1,5 @@
 #!/bin/bash
 
-ip=$(echo $1 | sed "s/backharddi-ng:\/\///")
-gnome-terminal --title "Backharddi NG - $ip" --maximize -x /usr/bin/sshpass -p root /usr/bin/ssh installer@$ip -o "StrictHostKeyChecking no" -o "UserKnownHostsFile /dev/null"
+user=$(echo $1 | sed "s/.*\///; s/@.*//")
+ip=$(echo $1 | sed "s/.*\///; s/.*@//")
+gnome-terminal --title "Backharddi NG - $ip" --maximize -x /usr/bin/sshpass -p root /usr/bin/ssh $user@$ip -o "StrictHostKeyChecking no" -o "UserKnownHostsFile /dev/null"
