@@ -7,7 +7,7 @@ Created on 17/05/2010
 from twisted.internet import reactor
 from twisted.python import log
 
-def map_host_name(ip)
+def map_host_name(ip):
     return ip
 
 class Host():

@@ -100,7 +100,7 @@ class BackharddiNGControl(resource.Resource):
             n = '/target'
         else:
             n = node[0]
-        list = self.backend.listPartition([n])
+        list = self.backend.list_partition([n])
         r = []
         for l in list.splitlines():
             if l[0] == '+':
