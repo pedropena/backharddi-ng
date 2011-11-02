@@ -164,9 +164,8 @@ class Service(service.Service):
         reactor.callWhenRunning(self.sendStatus)
         service.Service.startService(self)
 
-    def sendStatus(self, timeout=2):
+    def sendStatus(self, timeout=10):
         if Host.has_messages:
-            log.msg('Enviando estado al monitor')
             Host.sendStatus()
         self.send_status = reactor.callLater(timeout, self.sendStatus)
 
@@ -222,7 +221,7 @@ class Service(service.Service):
     def listBackupPartitions(self):
         return "\n".join([str(part) for part in self.bngparts])
     
-    def listPartition(self, dir=['/target']):
+    def list_partition(self, dir=['/target']):
         backups = []
         backupdirs = []
         dir = [toUnicode(dir[0])]
@@ -248,7 +247,7 @@ class Service(service.Service):
                         backupdirs.append(path)
         return "\n".join(backupdirs + backups).encode('utf-8')
 
-    def getBackupMetadata(self, backup=['']):
+    def get_meta(self, backup=['']):
         io = cStringIO.StringIO()
         backup = [toUnicode(backup[0])]
         part = self.bngparts[0]
@@ -274,7 +273,7 @@ class Service(service.Service):
             tar.close()
         return io.getvalue()
 
-    def putBackupMetadata(self):
+    def put_meta(self):
         putfactory = UploadPackedMetadataFactory()
         putfactory.base = self.bngparts[0].mountdir
         for portn in xrange(8000,8999):
@@ -285,7 +284,7 @@ class Service(service.Service):
             else:
                 return str(portn)        
     
-    def put(self, file=['']):
+    def put_img(self, file=['']):
         file = [toUnicode(file[0])]
         if os.path.basename(file[0]) != 'img':
             return ""
@@ -321,7 +320,7 @@ class Service(service.Service):
                 if udpsender.address == address and not udpsender.serving:
                     return udpsender
 
-    def request_get(self, request, backup=[''], minclients=[1]):
+    def request_get_imgs(self, request, backup=[''], minclients=[1]):
         backup = [toUnicode(backup[0])]
         address = request.getHost().host
         if not minclients[0]:
@@ -342,11 +341,32 @@ class Service(service.Service):
             self.hosts[request.client.host].request = request
             self.hosts[request.client.host].deferred_command(30)
             if self.hosts[request.client.host].status == 'Desconectado':
-                self.hosts[request.client.host].setStatus('Conectado', interactive=True)
+                self.hosts[request.client.host].setStatus('Conectado')
         else:
             Host(request)
         return NOT_DONE_YET
     
+    def do_shutdown(self, host):
+        if host in self.hosts:
+            self.hosts[host].command('poweroff')
+            self.hosts[host].setStatus('Desconectado')
+            return "Ok"
+        else:
+            return "Host %s no encontrado" % host
+
+    def do_reboot(self, host):
+        if host in self.hosts:
+            self.hosts[host].command('reboot')
+            self.hosts[host].setStatus('Desconectado')
+            return "Ok"
+        else:
+            return "Host %s no encontrado" % host
+    
+    def do_sync_hosts(self):
+	for host in self.hosts.values():
+            host.command('true')
+	return 'Ok'
+
     def do_command(self, host, cmd):
         if host in self.hosts:
             self.hosts[host].command(cmd)
@@ -360,6 +380,9 @@ class Service(service.Service):
     def do_del_from_group(self, name, hosts):
         Host.delFromGroup(name, hosts)
         
+    def do_del_host(self, hosts):
+        Host.delHost(hosts)
+        
     def do_launch_group(self, name):
         for host in self.groups[name]['hosts']:
             self.do_command(host, 'backharddi_do %s backharddi/net/minclients=%d' % (self.groups[name]['config'], len(self.groups[name]['hosts'])))
@@ -371,12 +394,16 @@ class Service(service.Service):
                 self.do_add_to_group('Grupo %d' % (len(self.groups) + 1), [request.client.host])
             self.hosts[request.client.host].setStatus(status[0], msg[0])
             if msg[0] == 'Completado':
-                def reboot():
+                def reboot_or_shutdown():
                     group = self.hosts[request.client.host].group
-                    if self.groups[group]['config'] and 'reboot' in self.groups[group]['config']:
-                        log.msg('Reiniciando %s' % request.client.host)
-                        self.do_command(request.client.host,'reboot')
-                reboot()
+                    if self.groups[group]['config']:
+                        if 'reboot' in self.groups[group]['config']:
+                            #log.msg('Reiniciando %s' % request.client.host)
+                            self.do_reboot(request.client.host)
+                        if 'shutdown' in self.groups[group]['config']:
+                            #log.msg('Apagando %s' % request.client.host)
+                            self.do_shutdown(request.client.host)
+                reboot_or_shutdown()
         else:
             raise Exception("Se ha enviado estado desde un Host inexistente")
         return ""

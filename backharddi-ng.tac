@@ -32,7 +32,7 @@ procmon.setServiceParent(application)
 service = Service(procmon, livemonitor, ROOT, TFTPROOT, TFTPROOTSUFFIX)
 service.setServiceParent(application)
 
-ws = server.Site(resource.IResource(service))
+ws = server.Site(resource.IResource(service), '/dev/null')
 internet.TCPServer( PORT, ws ).setServiceParent(application)
 
 manhole = manhole_tap.makeService({

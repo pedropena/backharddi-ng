@@ -14,13 +14,15 @@ var clientStore = new Ext.data.Store({
     reader: new Ext.data.JsonReader({
         id: 'id'
     }, clientRecord),
+    sortInfo: { fieldname: 'name', direction: 'ASC' }
 });
 
 var groupStore = new Ext.data.GroupingStore({
     reader: new Ext.data.JsonReader({
         id: 'id'
     }, clientRecord),
-	groupField: 'group',
+    groupField: 'group',
+    sortInfo: { fieldname: 'group', direction: 'ASC' }
 });
 
 Ext.onReady(function() {
@@ -129,11 +131,25 @@ Ext.onReady(function() {
 	            		        }
 	            		       ]
 	            	},
-	                xtype: 'button'
-	            }]
+	            xtype: 'button'
+	            },
+		        {
+				text: 'Sincronizar Clientes',
+				autoWidth: true,
+				xtype: 'button',
+				listeners: {
+					click: function() {
+						Ext.Ajax.request({
+					                url: 'control/sync_clients'
+					        });
+					}
+				}
+			}
+		    ]
         	}, {
 	            title: 'Clientes',
 	            region: 'center',
+	            autoScroll: true,
 	            items: clientView
         	}],
         }, groupGrid ]
@@ -185,7 +201,33 @@ function processData(data){
     	}
     }
     clientStore.loadData(clients,true);
-    groupStore.loadData(groups,true);	
+    groupStore.loadData(groups,true);
+    for (i=0; i < clientStore.getCount(); i++) {
+    	record = clientStore.getAt(i);
+    	encontrado = false;
+    	for (j=0; j < data.length; j++) {
+    		if ( record.id == data[j].id ) {
+    			encontrado = true;
+    			break
+    		}
+    	}
+    	if (!encontrado)
+    		clientStore.remove(record);
+    }
+    clientStore.sort('name','ASC');
+    groupStore.sort('name','ASC');
+    for (i=0; i < groupStore.getCount(); i++) {
+    	record = groupStore.getAt(i);
+    	encontrado = false;
+    	for (j=0; j < data.length; j++) {
+    		if ( record.id == data[j].id ) {
+    			encontrado = true;
+    			break
+    		}
+    	}
+    	if (!encontrado)
+    		groupStore.remove(record);
+    }
 }
 
 function startStomp(){
@@ -228,6 +270,18 @@ function onClientContextMenu(view, index, item, e) {
 		id: 'gridCtxMenu',
 		items: [{
 				scope: this,
+				text: 'Apagar',
+				handler: function(b, e) {
+		            hosts = [];
+		            for (i = 0; i < this.clientRecords.length; i++)
+		            	hosts[i] = this.clientRecords[i].data['ip'];
+		            Ext.Ajax.request({
+		            	url: 'control/shutdown',
+		            	params: { 'hosts': hosts },
+		            });
+				}
+			},{
+				scope: this,
 				text: 'Reiniciar',
 				handler: function(b, e) {
 		            hosts = [];
@@ -235,6 +289,18 @@ function onClientContextMenu(view, index, item, e) {
 		            	hosts[i] = this.clientRecords[i].data['ip'];
 		            Ext.Ajax.request({
 		            	url: 'control/reboot',
+		            	params: { 'hosts': hosts },
+		            });
+				}
+			},{
+				scope: this,
+				text: 'Eliminar',
+				handler: function(b, e) {
+		            hosts = [];
+		            for (i = 0; i < this.clientRecords.length; i++)
+		            	hosts[i] = this.clientRecords[i].data['ip'];
+		            Ext.Ajax.request({
+		            	url: 'control/del_from_gui',
 		            	params: { 'hosts': hosts },
 		            });
 				}
@@ -248,7 +314,7 @@ function onClientContextMenu(view, index, item, e) {
 				}
 			},{
 				scope: this,
-				text: 'Lanzar Consola',
+				text: 'Lanzar Consola Busybox',
 				handler: function(b, e) {
 					for (i = 0; i < this.clientRecords.length; i++)
 						w = window.open('backharddi-ng://busybox@' + this.clientRecords[i].data['ip']);
@@ -276,6 +342,18 @@ function onGroupRowContextMenu(g, rowIndex, e) {
 		id: 'gridCtxMenu',
 		items: [{
 			scope: this,
+			text: 'Apagar',
+			handler: function(b, e) {
+	            hosts = [];
+	            for (i = 0; i < this.clientRecords.length; i++)
+	            	hosts[i] = this.clientRecords[i].data['ip'];
+	            Ext.Ajax.request({
+	            	url: 'control/shutdown',
+	            	params: { 'hosts': hosts },
+	            });
+			}
+		},{
+			scope: this,
 			text: 'Reiniciar',
 			handler: function(b, e) {
 	            hosts = [];
@@ -288,6 +366,23 @@ function onGroupRowContextMenu(g, rowIndex, e) {
 			}
 		},{
 			scope: this,
+			text: 'Eliminar',
+			handler: function(b, e) {
+	            hosts = [];
+	            for (i = 0; i < this.clientRecords.length; i++)
+	            	hosts[i] = this.clientRecords[i].data['ip'];
+	            Ext.Ajax.request({
+	            	url: 'control/del_from_group',
+	            	params: { 'name': this.group, 'hosts': hosts },
+	            });
+	            Ext.Ajax.request({
+	            	url: 'control/del_from_gui',
+	            	params: { 'hosts': hosts },
+	            });
+
+			}
+		},{
+			scope: this,
 			text: 'Controlar Remotamente',
 			handler: function(b, e) {
 				for (i = 0; i < this.clientRecords.length; i++)
@@ -296,7 +391,7 @@ function onGroupRowContextMenu(g, rowIndex, e) {
 			}
 		},{
 			scope: this,
-			text: 'Lanzar consola Busybox',
+			text: 'Lanzar Consola Busybox',
 			handler: function(b, e) {
 				for (i = 0; i < this.clientRecords.length; i++)
 					w = window.open('backharddi-ng://busybox@' + this.clientRecords[i].data['ip']);
@@ -435,6 +530,10 @@ function initializeClientDropZone(g) {
     	            	listeners: { click: onClickImageNode }
         	        },{ 
         	        	xtype: 'checkbox',
+        	            boxLabel:'Apagar todos los miembros del grupo al terminar el proceso', 
+        	            name:'shutdown', 
+        	        },{ 
+        	        	xtype: 'checkbox',
         	            boxLabel:'Reiniciar todos los miembros del grupo al terminar el proceso', 
         	            name:'reboot', 
         	        },{ 
@@ -468,7 +567,7 @@ function initializeClientDropZone(g) {
                 center      : true,
                 layout:'fit',
                 width:500,
-                height:400,
+                height:420,
                 closeAction:'hide',
                 items: [configGroupForm],
             });

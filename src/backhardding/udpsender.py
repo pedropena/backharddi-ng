@@ -25,7 +25,7 @@ class UDPSender():
         self.requests = 0
         self.participants = 0
         self.minclients = int(minclients)
-        self.maxwait = 0
+        self.maxwait = 60
         self.port = PORTBASE
         active_ports = [ udpsender.port for backup in UDPSender.active.itervalues() for udpsender in backup ]
         while self.port in active_ports or backhardding.service.portInUse(self.port + 1):
@@ -38,7 +38,7 @@ class UDPSender():
             pp = UDPSenderProtocol( self, self.imgs.next() )
             self.log( 'UDP-Sender levantado' )
             reactor.spawnProcess( pp, UDPSENDER,  [ UDPSENDER, "--nokbd", "--half-duplex", "--retries-until-drop", "50", "--interface", str( self.address ), "--portbase", str( self.port ), "--min-receivers", str( self.minclients ), "--max-wait", str( self.maxwait ), "--stat-period", "2000" ] )
-            self.maxwait = 240
+            self.maxwait = 60
         except StopIteration:
             self.unset_active()
 
@@ -106,10 +106,10 @@ class UDPSenderProtocol( ProcessProtocol ):
             if not line:
                 continue
             elif line[:5] == "bytes":
-                self.udpsender.log(line.strip())
+#                self.udpsender.log(line.strip())
                 continue
             elif line[:7] == "Timeout":
-                self.udpsender.log(line.strip())
+#                self.udpsender.log(line.strip())
                 continue
             elif line.find( "Starting transfer" ) >= 0:
                 self.udpsender.serving = 1
@@ -132,7 +132,8 @@ class UDPSenderProtocol( ProcessProtocol ):
                 self.udpsender.log( 'Desconexion' )
                 self.udpsender.log(line.strip())
             else:
-                self.udpsender.log( line.strip() )
+		pass
+#                self.udpsender.log( line.strip() )
 
     def processEnded(self, reason):
         if reason.value.exitCode == 0 and self.udpsender.finish:
