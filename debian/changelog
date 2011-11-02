@@ -1,3 +1,14 @@
+backharddi-ng (0.19) lucid; urgency=low
+
+  * Reducción del log generado por el servicio de red
+  * Posibilidad de apagar y eliminar equipos en la interfaz web de control
+  * Añadido botón para sincronizar clientes permitiendo la selección múltiple de
+    clientes cuando hay muchos en la interfaz web de control
+  * Si se produce un error en algunos miembros de un grupo al lanzarlo desde la
+    interfaz web de control el resto de miembros sigue adelante pasados 60 segundos
+
+ -- Pedro Peña Pérez <pedro.pena@open-phoenix.com>  Wed, 02 Nov 2011 18:45:27 +0100
+
 backharddi-ng (0.18) lucid; urgency=low
 
   * Corregido error al manejar udp-sender por el cual se servia el siguiente fichero
