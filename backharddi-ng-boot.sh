@@ -109,7 +109,7 @@ alert(){
 
 cd /tmp
 IFS="$NBSP"
-zenity --list --width 400 --title $TITLE --text "Seleccione el tipo de medio para arrancar el sistema Backharddi NG:" --column "Medios soportados" "Dispositivo de almacenamiento USB" "CD-ROM" > $TMP_RESPONSE || abort $?
+zenity --list --width 400 --height 200 --title $TITLE --text "Seleccione el tipo de medio para arrancar el sistema Backharddi NG:" --column "Medios soportados" "Dispositivo de almacenamiento USB" "CD-ROM" > $TMP_RESPONSE || abort $?
 medio=$(cat $TMP_RESPONSE)
 
 case "$medio" in
@@ -132,10 +132,10 @@ $device_list";;
 		fi
 		
 		IFS="$NL"
-		zenity --list --width 400 --title $TITLE --text "Seleccione un dispositivo de almacenamiento USB:" --column "Dispositivos USB Detectados" $device_list > $TMP_RESPONSE || abort $?
+		zenity --list --width 400 --height 200 --title $TITLE --text "Seleccione un dispositivo de almacenamiento USB:" --column "Dispositivos USB Detectados" $device_list > $TMP_RESPONSE || abort $?
 		device=$(cat $TMP_RESPONSE | cut -d" " -f 1)
 		
-		zenity --list --title $TITLE --text "Desea formatear todo el dispositivo seleccionado?" --column "" "Sí" "No" > $TMP_RESPONSE || abort $?
+		zenity --list --height 200 --title $TITLE --text "Desea formatear todo el dispositivo seleccionado?" --column "" "Sí" "No" > $TMP_RESPONSE || abort $?
 		format=$(cat $TMP_RESPONSE)
 
 		if [ "$format" = "Sí" ]; then
@@ -153,7 +153,7 @@ $part_list"
 				exit 1
 			fi
 			IFS="$NL"
-			zenity --list --width 400 --title $TITLE --text "Seleccione la partición donde desea instalar el sistema de arranque.\nRecuerde que los datos de esta partición no se perderán y que debe tener al menos 16MB libres en esta partición." --column "Particiones detectadas" $part_list > $TMP_RESPONSE || abort $?
+			zenity --list --width 400 --height 200 --title $TITLE --text "Seleccione la partición donde desea instalar el sistema de arranque.\nRecuerde que los datos de esta partición no se perderán y que debe tener al menos 16MB libres en esta partición." --column "Particiones detectadas" $part_list > $TMP_RESPONSE || abort $?
 			part=$(cat $TMP_RESPONSE | cut -d" " -f 1)
 			mksyslinux_boot $device $part
 		fi
@@ -169,7 +169,7 @@ $device_list"
 		device_list="$device_list""Archivo de la imagen"
 		
 		IFS="$NL"
-		zenity --list --width 400 --title $TITLE --text "Seleccione un Grabador:" --column "Grabadores Detectados" $device_list > $TMP_RESPONSE || abort $?
+		zenity --list --width 400 --height 200 --title $TITLE --text "Seleccione un Grabador:" --column "Grabadores Detectados" $device_list > $TMP_RESPONSE || abort $?
 		grabador=$(cat $TMP_RESPONSE | cut -d" " -f 1)
 
 		IFS="$NBSP"

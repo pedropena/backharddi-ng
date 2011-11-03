@@ -56,13 +56,21 @@ class BackharddiNGControl(resource.Resource):
 
     def group_config(self, hosts=[''], name=[''], modo=['rest'], reboot=None, shutdown=None, backup=[''], launch=None):
         cmd = "backharddi/modo=%s backharddi/imagenes=/target/%s" % (modo[0], self.to_secure_string(backup[0]))
+        if modo[0] == "gen":
+            action = "Generar"
+        else:
+            action = "Restaurar"
+        end_action = "Permanecer a la espera"
         if reboot:
+            end_action = "Reiniciar"
             cmd = '%s backharddi/reboot=' % cmd
         if shutdown:
+            end_action = "Apagar"
             cmd = '%s shutdown' % cmd
-        self.backend.do_add_to_group(name[0],hosts[0].split(','),cmd)
+        group_name = '%s - %s "%s". %s al finalizar' % (name[0], action, backup[0], end_action)
+        self.backend.do_add_to_group(group_name,hosts[0].split(','),cmd)
         if launch:
-            self.backend.do_launch_group(name[0])
+            self.backend.do_launch_group(group_name)
         return ''
     
     def group_launch(self, name):
