@@ -54,7 +54,10 @@ class Partition():
             dev = self.mountdir
             params.append('-o bind')
         log.msg("Montando %s en %s" % (dev, dirname) )
-        os.mkdir(dirname)
+        try:
+            os.mkdir(dirname)
+        except:
+            pass
         value = utils.getProcessValue(self.MOUNT, params)
         value.addCallback( self._cb_mount, dirname )            
 
@@ -68,4 +71,5 @@ class Partition():
         if self.mounted:
             log.msg('Desmontando %s' % self.mountdir)
             os.system("%s %s" % (self.UMOUNT, str(self.mountdir) ))
-            os.rmdir(self.mountdir)
+            if self.mountdir:
+                os.rmdir(self.mountdir)

@@ -132,7 +132,7 @@ class UDPSenderProtocol( ProcessProtocol ):
                 self.udpsender.log( 'Desconexion' )
                 self.udpsender.log(line.strip())
             else:
-		pass
+                pass
 #                self.udpsender.log( line.strip() )
 
     def processEnded(self, reason):

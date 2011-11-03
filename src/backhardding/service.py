@@ -83,7 +83,7 @@ class UploadPackedMetadataProtocol(Protocol):
             self.data += data
     
     def connectionLost(self, reason):
-	log.msg( "Subidos %d bytes" % self.size )
+        log.msg( "Subidos %d bytes" % self.size )
         self.factory.unpack(self.data)
         
 class UploadPackedMetadataFactory(Factory):
@@ -103,7 +103,7 @@ class UploadPackedMetadataFactory(Factory):
             except:
                 pass
             open(absname,'w').write(chunkdata)
-	self.port.stopListening()
+        self.port.stopListening()
             
 class UploadImgProtocol(Protocol):
 
@@ -363,9 +363,9 @@ class Service(service.Service):
             return "Host %s no encontrado" % host
     
     def do_sync_hosts(self):
-	for host in self.hosts.values():
+        for host in self.hosts.values():
             host.command('true')
-	return 'Ok'
+        return 'Ok'
 
     def do_command(self, host, cmd):
         if host in self.hosts:
@@ -435,7 +435,10 @@ class Service(service.Service):
                         ifaces.append({ 'iface': iface, 'addr': ipaddr.IPNetwork( "%s/%s" % (address['addr'],address['netmask']))})
                         break
          
-        os.makedirs(self.tftpcfgdir + os.sep + 'pxelinux.cfg')
+        try:
+            os.makedirs(self.tftpcfgdir + os.sep + 'pxelinux.cfg')
+        except:
+            pass
         os.chmod(self.tftpcfgdir,0755)
         os.chmod(self.tftpcfgdir + os.sep + 'pxelinux.cfg',0755)
         self.tftpcfgfiles.append('pxelinux.cfg' + os.sep + 'default')
