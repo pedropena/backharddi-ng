@@ -176,11 +176,11 @@ $device_list"
 		while true; do
 			rm $ERROR
 			if [ $grabador = "Archivo" ]; then
-				zenity --entry --title $TITLE --text "Seleccione el nombre de la imagen:" --entry-text "$HOME/backharddi-ng.iso" > $TMP_FILENAME || abort $?
+				home=$(getent passwd $SUDO_USER | cut -d ":" -f 6)
+				zenity --file-selection --title "Seleccione el nombre de la imagen:" --save --confirm-overwrite --filename "$home/backharddi-ng.iso" > $TMP_FILENAME || abort $?
 				{ mkisofs -r -f -iso-level 2 -V "Backharddi NG" -b boot/isolinux/isolinux.bin -c boot/isolinux/boot.cat -no-emul-boot -boot-load-size 4 -boot-info-table -hide-rr-moved -graft-points -path-list $FILELIST -o $(cat $TMP_FILENAME) 2>&1 || touch $ERROR; } | sed -u 's/^[\ \t]*//' | tee /dev/stderr | zenity --progress --width 400 --title $TITLE --text "Generando CD de arranque Backharddi NG..." --auto-close
 				[ -f $ERROR ] && { error; continue; }
 
-				# configurar permisos, ticket #247
 				if [ "$SUDO_UID" != "" ]; then
 					chown ${SUDO_UID}:${SUDO_GID} $(cat $TMP_FILENAME) || true
 				fi

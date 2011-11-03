@@ -8,6 +8,7 @@ set -xv
 
 TITLE="Backharddi NG - CD/DVD's de Recuperación"
 TMP_DIR=/tmp/backharddi-ng
+TMP_IMG_DIR=/tmp/backharddi-ng_imgs
 TMP_SIZE_LIST=/tmp/backharddi-ng_sizelist
 TMP_RESPONSE=/tmp/backharddi-ng_response
 TMP_FILE_LIST=/tmp/backharddi-ng_filelist
@@ -40,26 +41,30 @@ humandev(){
 }
 
 abort(){
-	umount $TMP_DIR && rmdir $TMP_DIR
+	umount $TMP_DIR && { rmdir $TMP_DIR; rmdir $TMP_IMG_DIR; }
 	rm $TMP_SIZE_LIST $TMP_RESPONSE $TMP_FILE_LIST* $TMP_FILENAME $TMP_ISOLINUX_CFG $ERROR 
 	exit $1
 }
 
 error(){
-	zenity --error --title $TITLE --text "Ha ocurrido un error en la generación del $MEDIO número $medio."
+	zenity --error --title $TITLE --text "Ha ocurrido un error en la generación del $MEDIO número $medio. Se volverá a intentar."
 }
 	 
 cd /tmp
+[ -f $TMP_SIZE_LIST ] && rm $TMP_SIZE_LIST
 if ! grep -q $TMP_DIR /proc/mounts; then
 	MSG="¿Desde dónde desea generar la imagen?"
 	while true; do
-		zenity --list --title "$TITLE" --text "$MSG" --column "Origen" "Servidor de imágenes" "Dispositivo local" "Directorio local" > $TMP_RESPONSE || abort $?
+		zenity --list --title "$TITLE" --height 200 --text "$MSG" --column "Origen" "Servidor de imágenes" "Dispositivo local" "Directorio local" > $TMP_RESPONSE || abort $?
 		origen=$(cat $TMP_RESPONSE)
 		case "$origen" in
 			Servidor*)
 				zenity --entry --title "$TITLE" --text "Seleccione el nombre o dirección ip del servidor:" --entry-text "" > $TMP_FILENAME || abort $?
-				backuppart="-t nfs -o nolock,proto=tcp $(cat $TMP_FILENAME):$TMP_DIR"
+				backuppart="-t nfs -o nolock,proto=tcp $(cat $TMP_FILENAME):$ROOTDIR"
 				MSG="No se ha encontrado el servidor de imagenes en "$(cat $TMP_FILENAME)". ¿Desde dónde desea generar la imagen?"
+				[ -d $TMP_DIR ] || mkdir $TMP_DIR
+				dir=$TMP_DIR
+				mount $backuppart $TMP_DIR 2>/dev/null && break
 			;;
 			Dispositivo*)
 				backuppart=$(findfs LABEL=$MARCA)
@@ -67,20 +72,19 @@ if ! grep -q $TMP_DIR /proc/mounts; then
 					MSG="No se ha encontrado ninguna partición de backup. ¿Desde dónde desea generar la imagen?" 
 					continue
 				fi
+				[ -d $TMP_DIR ] || mkdir $TMP_DIR
+				dir=$TMP_DIR
+				mount $backuppart $TMP_DIR 2>/dev/null && break
 			;;
 			Directorio*)
-				backuppart="-o bind $ROOTDIR"
+				dir=$ROOTDIR
+				[ -d $dir ] && break
 				MSG="No se ha encontrado el directorio de imagenes "$ROOTDIR". ¿Desde dónde desea generar la imagen?"
 			;;
 		esac
-
-		[ -d $TMP_DIR ] || mkdir $TMP_DIR
-		[ -f $TMP_SIZE_LIST ] && rm $TMP_SIZE_LIST
-		mount $backuppart $TMP_DIR 2>/dev/null && break
 	done
 fi
 
-dir=$TMP_DIR
 while true; do
 	for backup in $(ls $dir); do
         	[ -d "$dir/$backup" ] || continue
@@ -101,7 +105,7 @@ $backups"
 	fi
 	
 	IFS="$NL"
-	zenity --list --width 400 --title $TITLE --text "Seleccione una Copia de Seguridad :" --column "Copias de Seguridad detectadas" $backups > $TMP_RESPONSE || abort $?
+	zenity --list --width 400 --height 400 --title $TITLE --text "Seleccione una Copia de Seguridad :" --column "Copias de Seguridad detectadas" $backups > $TMP_RESPONSE || abort $?
 	backup=$dir/$(cat $TMP_RESPONSE | to_secure_string)
 	if ls "$backup"/=dev=* >/dev/null 2>&1; then
 		break;
@@ -119,7 +123,7 @@ for f in $(find $backup -name img); do
 		size=$((size+filesize))
 	done
 	echo "$f" "$size" >> $TMP_SIZE_LIST
-	[ -z "$s" ] || echo "$(basename $s)" > $f
+	[ -z "$s" ] || { [ -d $TMP_IMG_DIR/${f%img} ] || mkdir -p $TMP_IMG_DIR${f%img}; echo "$(basename $s)" > $TMP_IMG_DIR$f; }
 done
 
 if [ ! -f $TMP_SIZE_LIST ]; then
@@ -127,7 +131,7 @@ if [ ! -f $TMP_SIZE_LIST ]; then
 	abort $?
 fi
 
-zenity --list --width 400 --height 200 --title $TITLE --text "Seleccione el tipo de Medio para generar los CD/DVD's de Recuperación del Sistema:" --column "Medio" "CD" "DVD" "DVD de máximo 4 GB" "DVD de doble capa" > $TMP_RESPONSE || abort $?
+zenity --list --width 400 --height 250 --title $TITLE --text "Seleccione el tipo de Medio para generar los CD/DVD's de Recuperación del Sistema:" --column "Medio" "CD" "DVD" "DVD de máximo 4 GB" "DVD de doble capa" > $TMP_RESPONSE || abort $?
 MEDIO="$(cat $TMP_RESPONSE)"
 case "$MEDIO" in
 	"CD") block_count=358400;;
@@ -160,9 +164,13 @@ IFS="$NL"
 COUNT=1
 file_list=$TMP_FILE_LIST$COUNT
 cp /usr/share/backharddi-ng/backharddi-ng-dvd.filelist $file_list
-for f in $(find $backup -type f ! -name *.[0-9][0-9]); do
+for f in $(find $backup -type f ! -name *.[0-9][0-9] ! -name img); do
 	file=$(echo $f | sed 's/=/\\=/g')
 	echo Imagenes/${file#$backup/}=$file >> $file_list
+done
+for f in $(find $backup -type f -name img); do
+	file=$(echo $f | sed 's/=/\\=/g')
+	echo Imagenes/${file#$backup/}=$TMP_IMG_DIR$file >> $file_list
 done
 cp $file_list $TMP_FILE_LIST
 for line in $(cat $TMP_SIZE_LIST | sort); do
@@ -192,17 +200,18 @@ fi
 device_list="$device_list""Archivo de la imagen"
 
 IFS="$NL"
-zenity --list --width 400 --title $TITLE --text "Seleccione un Grabador:" --column "Grabadores Detectados" $device_list > $TMP_RESPONSE || abort $?
+zenity --list --width 400 --height 200 --title $TITLE --text "Seleccione un Grabador:" --column "Grabadores Detectados" $device_list > $TMP_RESPONSE || abort $?
 grabador=$(cat $TMP_RESPONSE | cut -d" " -f 1)
 
 medio=1
 IFS="$NBSP"
-file="$HOME/backharddi-ng_$medio.iso"
+home=$(getent passwd $SUDO_USER | cut -d ":" -f 6)
+file="$home/backharddi-ng_$medio.iso"
 while [ $medio -le $COUNT ]; do
 	rm $ERROR
 	if [ $grabador = "Archivo" ]; then
-		zenity --entry --title $TITLE --text "Seleccione el nombre de la imagen para el $MEDIO número $medio:" --entry-text "$file" > $TMP_FILENAME || abort $?
-		{ mkisofs -r -f -iso-level 2 -V "Recuperación del Sistema $medio" -b boot/isolinux/isolinux.bin -c boot/isolinux/boot.cat -no-emul-boot -boot-load-size 4 -boot-info-table -hide-rr-moved -graft-points -path-list $TMP_FILE_LIST$medio -o $(cat $TMP_FILENAME) 2>&1 || touch $ERROR; } | sed -u 's/^[\ \t]*//' | tee /dev/stderr | zenity --progress --width 400 --title $TITLE --text "Generando CD/DVD de recuperación número $medio..." --auto-close
+		zenity --file-selection --title "Seleccione el nombre de la imagen para el $MEDIO número $medio:" --save --confirm-overwrite --filename "$file" > $TMP_FILENAME || abort $?
+		{ mkisofs -r -f -iso-level 2 -V "Recuperación del Sistema $medio" -b boot/isolinux/isolinux.bin -c boot/isolinux/boot.cat -no-emul-boot -boot-load-size 4 -boot-info-table -hide-rr-moved -graft-points -path-list $TMP_FILE_LIST$medio -o $(cat $TMP_FILENAME) 2>&1 || touch $ERROR; } | sed -u 's/^[\ \t]*//' | tee /dev/stderr | { zenity --progress --width 400 --title $TITLE --text "Generando CD/DVD de recuperación número $medio..." --auto-close; killall mkisofs; }
 		[ -f $ERROR ] && { error; continue; }
 		if [ "$SUDO_UID" != "" ]; then
 			chown ${SUDO_UID}:${SUDO_GID} $(cat $TMP_FILENAME) || true
@@ -212,9 +221,9 @@ while [ $medio -le $COUNT ]; do
 		device=$(echo $grabador | cut -d" " -f 1) 
 		zenity --question --title $TITLE --text "Introduzca un $MEDIO virgen para grabar el $MEDIO número $medio." || abort $?
 		if [ $MEDIO = "CD" ]; then
-			{ mkisofs -r -f -iso-level 2 -V "Recuperación del Sistema $medio" -b boot/isolinux/isolinux.bin -c boot/isolinux/boot.cat -no-emul-boot -boot-load-size 4 -boot-info-table -hide-rr-moved -graft-points -path-list $TMP_FILE_LIST$medio | cdrecord driveropts=burnfree gracetime=2 dev=$device - 2>&1 || touch $ERROR; } | sed -u 's/^[\ \t]*//' | tee /dev/stderr | zenity --progress --width 400 --title $TITLE --text "Generando CD/DVD de recuperación número $medio..." --auto-close
+			{ mkisofs -r -f -iso-level 2 -V "Recuperación del Sistema $medio" -b boot/isolinux/isolinux.bin -c boot/isolinux/boot.cat -no-emul-boot -boot-load-size 4 -boot-info-table -hide-rr-moved -graft-points -path-list $TMP_FILE_LIST$medio | cdrecord driveropts=burnfree gracetime=2 dev=$device - 2>&1 || touch $ERROR; } | sed -u 's/^[\ \t]*//' | tee /dev/stderr | { zenity --progress --width 400 --title $TITLE --text "Generando CD/DVD de recuperación número $medio..." --auto-close; killall cdrecord; }
 		else
-			{ growisofs -dvd-compat -Z $device -r -f -iso-level 2 -V "Recuperación del Sistema $medio" -b boot/isolinux/isolinux.bin -c boot/isolinux/boot.cat -no-emul-boot -boot-load-size 4 -boot-info-table -hide-rr-moved -graft-points -path-list $TMP_FILE_LIST$medio 2>&1 || touch $ERROR; } | sed -u 's/^[\ \t]*//' | tee /dev/stderr | zenity --progress --width 400 --title $TITLE --text "Generando CD/DVD de recuperación número $medio..." --auto-close
+			{ growisofs -dvd-compat -Z $device -r -f -iso-level 2 -V "Recuperación del Sistema $medio" -b boot/isolinux/isolinux.bin -c boot/isolinux/boot.cat -no-emul-boot -boot-load-size 4 -boot-info-table -hide-rr-moved -graft-points -path-list $TMP_FILE_LIST$medio 2>&1 || touch $ERROR; } | sed -u 's/^[\ \t]*//' | tee /dev/stderr | { zenity --progress --width 400 --title $TITLE --text "Generando CD/DVD de recuperación número $medio..." --auto-close; killall growisofs; }
 		fi
 		[ -f $ERROR ] && { error; continue; }
 		eject $device
