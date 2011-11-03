@@ -1,3 +1,19 @@
+backharddi-ng (0.20) lucid; urgency=low
+
+  * Selector gráfico de nombre de fichero en los asistentes de generación de
+    CD/DVD's de recuperación y dispositivos de arranque
+  * No se escribe en los ficheros img originales al generar un CD/DVD de
+    recuperación
+  * Ahora funcionan correctamente los botones de cancelar en el asistente de
+    generación de CD/DVD's de recuperación
+  * Mejoras de fiabilidad al iniciar el servicio de red
+  * Se da un nombre más descriptivo a los grupos que se forman desde la
+    interfaz web de control
+  * Forzado alto de ventana en asistentes de generación de CD/DVD's y medios
+    de arranque
+
+ -- Pedro Peña Pérez <pedro.pena@open-phoenix.com>  Thu, 03 Nov 2011 18:43:43 +0100
+
 backharddi-ng (0.19) lucid; urgency=low
 
   * Reducción del log generado por el servicio de red
