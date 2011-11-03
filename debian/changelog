@@ -1,3 +1,10 @@
+backharddi-ng (0.20oneiric1) oneiric; urgency=low
+
+  * Generación de medios arrancables de forma correcta con syslinux >= 4.0
+  * Construcción en oneiric
+
+ -- Pedro Peña Pérez <pedro.pena@open-phoenix.com>  Thu, 03 Nov 2011 18:49:55 +0100
+
 backharddi-ng (0.20) lucid; urgency=low
 
   * Selector gráfico de nombre de fichero en los asistentes de generación de
