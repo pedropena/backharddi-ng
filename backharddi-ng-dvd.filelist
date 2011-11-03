@@ -11,6 +11,7 @@ boot/isolinux/init=/usr/share/backharddi-ng/common/init
 boot/isolinux/lang=/usr/share/backharddi-ng/common/lang
 boot/isolinux/gfxboot.cfg=/usr/share/backharddi-ng/common/gfxboot.cfg
 boot/isolinux/isolinux.bin=/usr/lib/syslinux/isolinux.bin
+boot/isolinux/gfxboot.c32=/usr/lib/syslinux/gfxboot.c32
 boot/isolinux/isolinux.cfg=/tmp/backharddi-ng_isolinux.cfg
 boot/initrd.gz=/boot/minirt-backharddi-ng.gz
 boot/linux=/boot/linux-backharddi-ng
