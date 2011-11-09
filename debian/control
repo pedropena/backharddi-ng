@@ -7,7 +7,7 @@ Standards-Version: 3.6.1
 
 Package: backharddi-ng
 Architecture: all
-Depends: backharddi-ng-kernel-i386 (>= 0.27) | backharddi-ng-kernel-amd64 (>= 0.27), grub-pc | grub | lilo, e2fsprogs, grep, sed, mount, findutils, genisoimage, dvd+rw-tools, wodim, zenity, syslinux-common (>= 4.0), memtest86+, udpcast (>= 20100130), python-twisted, python-dbus, python-cjson, lvm2, hal, dnsmasq, sshpass, python-netifaces, python-ipaddr
+Depends: backharddi-ng-kernel-i386 (>= 0.30) | backharddi-ng-kernel-amd64 (>= 0.30), grub-pc | grub | lilo, e2fsprogs, grep, sed, mount, findutils, genisoimage, dvd+rw-tools, wodim, zenity, syslinux (>= 3.63), memtest86+, udpcast (>= 20100130), python-twisted, python-dbus, python-cjson, lvm2, hal, dnsmasq, sshpass, python-netifaces, python-ipaddr
 Replaces: backharddi-ng-net
 Conflicts: backharddi-ng-net
 Description: Next Generation Hard Disk Backup based on Debian Installer
