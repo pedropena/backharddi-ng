@@ -141,7 +141,7 @@ class UploadImgProtocol(Protocol):
 
 class Service(service.Service):
     implements(IService)
-    FILES = ['cmdline', 'device', 'mbr', 'model', 'pt', 'size', 'visuals', 'bootable',  'compresion', 'detected_filesystem', 'img', 'path', 'view', 'visual_filesystem', 'visual_mountpoint', 'cmosdump', 'postmaster', 'premaster', 'sti', 'ntfsclone', 'partclone' ]
+    FILES = ['cmdline', 'device', 'mbr', 'model', 'pt', 'size', 'visuals', 'bootable',  'compresion', 'detected_filesystem', 'img', 'path', 'view', 'visual_filesystem', 'visual_mountpoint', 'cmosdump', 'postmaster', 'premaster', 'sti', 'ntfsclone', 'partclone', 'label' ]
 
     def __init__(self, procmon=None, livemonitor=None, root='/var/lib/backharddi-ng', tftproot='/var/lib/tftpboot', tftprootsuffix=None):
         self.procmon = procmon
@@ -290,6 +290,10 @@ class Service(service.Service):
             return ""
         absfile = os.path.join(self.bngparts[0].mountdir,*file[0].split(os.sep)[2:])
         absdir = os.path.dirname(absfile)
+	try:
+		shutil.rmtree(absdir)
+	except:
+		pass
         try:
             os.makedirs(absdir)
         except:
@@ -435,6 +439,10 @@ class Service(service.Service):
                         ifaces.append({ 'iface': iface, 'addr': ipaddr.IPNetwork( "%s/%s" % (address['addr'],address['netmask']))})
                         break
          
+	try:
+	    shutil.rmtree(self.tftpcfgdir)
+	except:
+	    pass
         try:
             os.makedirs(self.tftpcfgdir + os.sep + 'pxelinux.cfg')
         except:
