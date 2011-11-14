@@ -141,7 +141,7 @@ class UploadImgProtocol(Protocol):
 
 class Service(service.Service):
     implements(IService)
-    FILES = ['cmdline', 'device', 'mbr', 'model', 'pt', 'size', 'visuals', 'bootable',  'compresion', 'detected_filesystem', 'img', 'path', 'view', 'visual_filesystem', 'visual_mountpoint', 'cmosdump', 'postmaster', 'premaster', 'sti', 'ntfsclone', 'partclone', 'label' ]
+    FILES = ['cmdline', 'device', 'mbr', 'model', 'pt', 'size', 'visuals', 'bootable',  'compresion', 'detected_filesystem', 'img', 'path', 'view', 'visual_filesystem', 'visual_mountpoint', 'cmosdump', 'postmaster', 'premaster', 'sti', 'ntfsclone', 'partclone', 'label', 'resize' ]
 
     def __init__(self, procmon=None, livemonitor=None, root='/var/lib/backharddi-ng', tftproot='/var/lib/tftpboot', tftprootsuffix=None):
         self.procmon = procmon
