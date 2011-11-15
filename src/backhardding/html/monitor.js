@@ -25,71 +25,70 @@ var groupStore = new Ext.data.GroupingStore({
     sortInfo: { fieldname: 'group', direction: 'ASC' }
 });
 
-Ext.onReady(function() {
-    var clientView = new Ext.DataView({
-        cls: 'client-view',
-        tpl: '<tpl for=".">' +
-        		'<tpl if="status == \'Conectado\'">' +
-        			'<div class="client_source"><img class="icon_client" src="resources/images/default/s.gif"/>{name}</div>' +
-        		'</tpl>' +
-        		'<tpl if="status != \'Conectado\'">' +
-        			'<div class="client_source client_disconnected"><img class="icon_client" src="resources/images/default/s.gif"/>{name}</div>' +
-        		'</tpl>' +
-        	 '</tpl>',
-    	itemSelector: "div.client_source",
-    	selectedClass: "client_selected",
-    	overClass: "client_over",   
-    	singleSelect: false,
-    	multiSelect: true,
-        store: clientStore,
-        listeners: {
-    		contextmenu: onClientContextMenu,
-            render: initializeClientDragZone,
-        },
-    });
-    
-    var groupGrid = new Ext.grid.GridPanel({
-        title: 'Grupos',
-        region: 'center',
-        margins: '0 5 5 0',
-        columns: [{
-            dataIndex: 'name',
-            header: 'Nombre',
-            width: 50
-        }, {
-            dataIndex: 'ip',
-            header: 'Direccion IP',
-            width: 50
-        }, {
-            dataIndex: 'group',
-            header: 'Grupo',
-            width: 50,
-            hidden: true,
-            hiddeable: false,
-        }, {
-            dataIndex: 'status',
-            header: 'Estado',
-            width: 50
-        }, {
-            dataIndex: 'msg',
-            header: 'Mensaje',
-            width: 200,
-        }],
-        view: new Ext.grid.GroupingView({
-            forceFit:true,
-            groupTextTpl: '{text} ({[values.rs.length]} {[values.rs.length > 1 ? "Miembros" : "Miembro"]})'
-        }),
-        store: groupStore,
-        listeners: {
-            render: initializeClientDropZone,
-    		rowcontextmenu: onGroupRowContextMenu,
-        },
-	    iconCls: 'icon-grid',
-	    cls: 'group-member'
-    });
-    
+var clientView = new Ext.DataView({
+    cls: 'client-view',
+    tpl: '<tpl for=".">' +
+    		'<tpl if="status == \'Conectado\'">' +
+    			'<div class="client_source"><img class="icon_client" src="resources/images/default/s.gif"/>{name}</div>' +
+    		'</tpl>' +
+    		'<tpl if="status != \'Conectado\'">' +
+    			'<div class="client_source client_disconnected"><img class="icon_client" src="resources/images/default/s.gif"/>{name}</div>' +
+    		'</tpl>' +
+    	 '</tpl>',
+	itemSelector: "div.client_source",
+	selectedClass: "client_selected",
+	overClass: "client_over",   
+	singleSelect: false,
+	multiSelect: true,
+    store: clientStore,
+    listeners: {
+		contextmenu: onClientContextMenu,
+        render: initializeClientDragZone,
+    },
+});
 
+var groupGrid = new Ext.grid.GridPanel({
+    title: 'Grupos',
+    region: 'center',
+    margins: '0 5 5 0',
+    columns: [{
+        dataIndex: 'name',
+        header: 'Nombre',
+        width: 50
+    }, {
+        dataIndex: 'ip',
+        header: 'Direccion IP',
+        width: 50
+    }, {
+        dataIndex: 'group',
+        header: 'Grupo',
+        width: 50,
+        hidden: true,
+        hiddeable: false,
+    }, {
+        dataIndex: 'status',
+        header: 'Estado',
+        width: 50
+    }, {
+        dataIndex: 'msg',
+        header: 'Mensaje',
+        width: 200,
+    }],
+    view: new Ext.grid.GroupingView({
+        forceFit: true,
+        scrollToTop: Ext.emptyFn,
+        groupTextTpl: '{text} ({[values.rs.length]} {[values.rs.length > 1 ? "Miembros" : "Miembro"]})'
+    }),
+    store: groupStore,
+    listeners: {
+        render: initializeClientDropZone,
+		rowcontextmenu: onGroupRowContextMenu,
+    },
+	iconCls: 'icon-grid',
+	cls: 'group-member'
+});
     
+Ext.onReady(function() {
     new Ext.Viewport({
         layout: 'border',
         items: [{
@@ -133,18 +132,6 @@ Ext.onReady(function() {
 	            	},
 	            xtype: 'button'
 	            },
-		        {
-				text: 'Sincronizar Clientes',
-				autoWidth: true,
-				xtype: 'button',
-				listeners: {
-					click: function() {
-						Ext.Ajax.request({
-					                url: 'control/sync_clients'
-					        });
-					}
-				}
-			}
 		    ]
         	}, {
 	            title: 'Clientes',
@@ -172,6 +159,7 @@ function arrancarEquipos(item,checked){
 }
 
 function processData(data){
+    clientsSelected = clientView.getSelectedRecords();
     clients = [];
     groups = [];
     for (i=0; i < data.length; i++) {
@@ -215,6 +203,7 @@ function processData(data){
     		clientStore.remove(record);
     }
     clientStore.sort('name','ASC');
+    clientView.select(clientsSelected);
     groupStore.sort('name','ASC');
     for (i=0; i < groupStore.getCount(); i++) {
     	record = groupStore.getAt(i);
