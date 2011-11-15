@@ -1,9 +1,19 @@
-backharddi-ng (0.22oneiric1) oneiric; urgency=low
+backharddi-ng (0.23oneiric1) oneiric; urgency=low
 
   * Generación de medios arrancables de forma correcta con syslinux >= 4.0
   * Construcción en oneiric
 
- -- Pedro Peña Pérez <pedro.pena@open-phoenix.com>  Mon, 14 Nov 2011 19:58:14 +0100
+ -- Pedro Peña Pérez <pedro.pena@open-phoenix.com>  Tue, 15 Nov 2011 18:41:38 +0100
+
+backharddi-ng (0.23) lucid; urgency=low
+
+  * Eliminado botón de sincronización de la interfaz web.
+  * Se mantiene la selección de clientes al actualizarse la lista en la
+    interfaz web.
+  * Se mantiene el scroll de la ventana de grupos al actualizarse la lista en
+    la interfaz web.
+
+ -- Pedro Peña Pérez <pedro.pena@open-phoenix.com>  Tue, 15 Nov 2011 18:30:43 +0100
 
 backharddi-ng (0.22) lucid; urgency=low
 
