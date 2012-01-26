@@ -1,9 +1,16 @@
-backharddi-ng (0.23oneiric1) oneiric; urgency=low
+backharddi-ng (0.23.1oneiric1) oneiric; urgency=low
 
   * Generación de medios arrancables de forma correcta con syslinux >= 4.0
   * Construcción en oneiric
 
- -- Pedro Peña Pérez <pedro.pena@open-phoenix.com>  Tue, 15 Nov 2011 18:41:38 +0100
+ -- Pedro Peña Pérez <pedro.pena@open-phoenix.com>  Thu, 26 Jan 2012 11:48:35 +0100
+
+backharddi-ng (0.23.1) lucid; urgency=low
+
+  * No se cancela la grabación al cancelar la generación al vuelo de un CD/DVD
+    de recuperación.
+
+ -- Pedro Peña Pérez <pedro.pena@open-phoenix.com>  Wed, 21 Dec 2011 18:00:38 +0100
 
 backharddi-ng (0.23) lucid; urgency=low
 
