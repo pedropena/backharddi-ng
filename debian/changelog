@@ -1,9 +1,9 @@
-backharddi-ng (0.23.1oneiric1) oneiric; urgency=low
+backharddi-ng (0.23.1precise1) precise; urgency=low
 
   * Generación de medios arrancables de forma correcta con syslinux >= 4.0
-  * Construcción en oneiric
+  * Construcción en precise
 
- -- Pedro Peña Pérez <pedro.pena@open-phoenix.com>  Thu, 26 Jan 2012 11:48:35 +0100
+ -- Pedro Peña Pérez <pedro.pena@open-phoenix.com>  Tue, 29 May 2012 18:18:55 +0200
 
 backharddi-ng (0.23.1) lucid; urgency=low
 
